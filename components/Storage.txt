@@ -1,0 +1,13 @@
+//%reserve --> % of KWhrated  to be held in reserve for normal operation
+
+New Storage.AtPVNode phases=3 bus1=121117 kV=0.4  kva=5
+~ kWhrated=9.6 kwrated=6.4 %reserve=15 %stored=40
+~ PF=1 phases=3
+~ state=idling
+~ enable=yes
+~ %charge=20
+~ %discharge=20
+!~ debugtrace=yes
+!~ DischargeTrigger=0.6 ChargeTrigger=0.4
+!~ dispmode=follow daily=dailyshape
+~ chargetrigger=0 dischargetrigger=0 !dispmode=external

@@ -1,0 +1,13 @@
+Var @powerfactor=1
+
+New load.900    phases=3  bus1=255258   kV=0.4 pf=@powerfactor   Daily=Shape_2 
+New load.58     phases=3  bus1=126563   kV=0.4 pf=@powerfactor   Daily=Shape_3
+New load.68     phases=3  bus1=126858   kV=0.4 pf=@powerfactor     Daily=Shape_4 
+New load.70     phases=3  bus1=130108   kV=0.4  pf=@powerfactor    Daily=Shape_5 
+New load.72     phases=3  bus1=126468   kV=0.4 pf=@powerfactor    Daily=Shape_6 
+New load.52A    phases=3  bus1=109211   kV=0.4  pf=@powerfactor    Daily=Shape_7 
+New load.52    phases=3  bus1=109211   kV=0.4  pf=@powerfactor Daily=Shape_8 
+New load.902    phases=3  bus1=126674   kV=0.4  pf=@powerfactor Daily=Shape_9
+New load.54     phases=3  bus1=116757   kV=0.4  pf=@powerfactor Daily=Shape_10 
+New load.UNKNOWN1 phases=3  bus1=117766   kV=0.4  pf=@powerfactor  Daily=Shape_11 		
+New load.UNKNOWN2 phases=3  bus1=107756   kV=0.4 pf=@powerfactor Daily=Shape_12  

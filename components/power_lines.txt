@@ -1,0 +1,30 @@
+//line definition
+var @length_unit=1000
+New line.82876 bus1=225875 bus2=107558 phases=3  length=0.007 units=km linecode=underground_95mm
+New line.175750 bus1=107558 bus2=255258 phases=3 length=0.073 units=km linecode=underground_95mm
+New line.208730 bus1=255258 bus2=269172 phases=3 length=0.098 units=km linecode=underground_95mm
+New line.218585 bus1=269172 bus2=126563 phases=3 length=0.046 units=km linecode=underground_25mm
+New line.173300 bus1=269172 bus2=126858 phases=3 length=0.021 units=km linecode=underground_25mm
+New line.200683 bus1=269172 bus2=130108 phases=3 length=0.01 units=km linecode=underground_25mm
+New line.182107 bus1=269172 bus2=134391 phases=3 length=0.046 units=km linecode=underground_50mm
+New line.211405 bus1=269172 bus2=126468 phases=3 length=0.021 units=km linecode=underground_25mm
+
+New line.186475 bus1=255258 bus2=121635 phases=3 length=0.035 units=km linecode=underground_16mm
+
+New line.199125 bus1=255258 bus2=123728 phases=3 length=0.105 units=km linecode=underground_50mm
+New line.35257 bus1=123728  bus2=290164 phases=3 length=0.152 units=km linecode=aerial_70mm
+New line.198506 bus1=290164 bus2=290163 phases=3 length=0.043 units=km linecode=underground_50mm
+New line.34289 bus1=290163 bus2=290165 phases=3 length=0.292 units=km linecode=aerial_70mm
+New line.182873 bus1=290165 bus2=109211 phases=3 length=0.106 units=km linecode=underground_25mm
+New line.31654 bus1=290165 bus2=122202 phases=3 length=0.026 units=km linecode=aerial_35mm
+New line.191817 bus1=122202 bus2=111795 phases=3 length=0.002 units=km linecode=underground_16mm  !however no information regarding the cable is available yet -->> asked from Edyna
+New line.36202 bus1=122202 bus2=122178 phases=3 length=0.045 units=km linecode=aerial_35mm
+New line.39330 bus1=122178 bus2=123004 phases=3 length=0.185 units=km linecode=aerial_50mm
+New line.39360 bus1=123004 bus2=123775 phases=3 length=0.107 units=km linecode=aerial_50mm
+New line.32579 bus1=123004 bus2=114154 phases=3 length=0.023 units=km linecode=aerial_35mm
+New line.39359 bus1=123775 bus2=121117 phases=3 length=0.044 units=km linecode=aerial_50mm
+New line.202391 bus1=121117 bus2=116757 phases=3 length=0.08 units=km linecode=underground_25mm
+New line.188494 bus1=123775 bus2=143324 phases=3 length=0.012 units=km linecode=underground_16mm
+New line.205713 bus1=143324 bus2=126674 phases=3 length=0.001 units=km linecode=underground_16mm !however no information regarding the cable is available yet -->> asked from Edyna
+New line.208731 bus1=114154 bus2=117766 phases=3 length=0.008 units=km linecode=underground_25mm
+New line.170613 bus1=114154 bus2=107756 phases=3 length=0.272 units=km linecode=underground_25mm

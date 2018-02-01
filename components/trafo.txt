@@ -1,0 +1,4 @@
+
+New Transformer.TR1 phases=3 winding=2 xhl=0.014 kVs=(16, 0.4) kVAs=[400 400]
+~ wdg=1 bus=SourceBus conn=delta kv=16  !%r=.5 XHT=1
+~ wdg=2 bus=225875 conn=wye kv=0.4        !%r=.5 XLT=1

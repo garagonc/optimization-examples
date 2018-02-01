@@ -1,0 +1,33 @@
+Var @powerfactor=0.95
+
+New load.No900 phases=3 bus1=255258 kV=0.4 kW=3.3 pf=@powerfactor
+New load.No58 phases=3 bus1=126563 kV=0.4 kW=18 pf=@powerfactor
+
+
+New load.No68 phases=3 bus1=126858 kV=0.4 kW=10 pf=@powerfactor
+New load.No68_R phases=1 bus1=126858.1 kV=0.23 kW=1.5
+New load.No68_S phases=1 bus1=126858.2 kV=0.23 kW=0.5
+New load.No68_T phases=1 bus1=126858.3 kV=0.23 kW=0
+
+New load.No70 phases=3 bus1=130108 kV=0.4 kW=0 pf=@powerfactor
+New load.No70_S phases=1 bus1=130108 .2 kV=0.23 kW=1.5
+
+New load.No72 phases=3 bus1=126468 kV=0.4 kW=15 pf=@powerfactor
+New load.No72_S phases=1 bus1=126468.1 kV=0.23 kW=0
+
+New load.No52A phases=3 bus1=109211 kV=0.4 kW=6 pf=@powerfactor
+New load.No52A_R phases=1 bus1=109211.1 kV=0.23 kW=0
+New load.No52A_S phases=1 bus1=109211.2 kV=0.23 kW=2.5
+New load.No52A_T phases=1 bus1=109211.3 kV=0.23 kW=0.05
+
+New load.No52 phases=3 bus1=111795 kV=0.4 kW=0
+New load.No52_R phases=1 bus1=111795.1 kV=0.23 kW=0
+New load.No52_S phases=1 bus1=111795.2 kV=0.23 kW=6.5
+New load.No52_T phases=1 bus1=111795.3 kV=0.23 kW=0
+
+New load.902 phases=3 bus1=126674 kV=0.4 kW=1.5 pf=@powerfactor
+
+New load.54 phases=3 bus1=116757 kV=0.4 kW=6.2 pf=@powerfactor
+
+New load.UNKNOWN1 phases=3 bus1=117766 kV=0.4 kW=0
+New load.UNKNOWN2 phases=3 bus1=107756 kV=0.4 kW=4.5

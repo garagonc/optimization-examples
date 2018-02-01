@@ -1,0 +1,5 @@
+New StorageController.AtPVNodeControl  Element=Storage.AtPVNode  
+  ~ kWTarget=60  PFTarget=0.98 
+  ~ %ratecharge=30
+  ~ eventlog=y
+~ modedischarge=time Timechargetrigger=6 Timedischargetrigger=16 %ratekW=25 Tup=0.5 
