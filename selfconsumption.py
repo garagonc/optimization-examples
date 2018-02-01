@@ -17,7 +17,7 @@ Created on Tue Jan 23 10:20:53 2018
 from pyomo.environ import *
 from pyomo.opt import SolverFactory
 import matplotlib.pylab as plt
-import string
+
 
 
 
