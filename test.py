@@ -18,7 +18,7 @@ from pyomo.opt import SolverFactory
 ###########################################################################
 #######               Functions
 ############################################################################
-#Added comment
+
  
 def thresholdPowerStorage(dss_circuit_load,charge=0.4,discharge=0.8):
     #return dss_circuit_load#print(str(dss_circuit_load))
