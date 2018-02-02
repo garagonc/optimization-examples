@@ -121,26 +121,14 @@ print("#################################################")
       
       
 def obj_rule(model):
-    return (sum(Ppv_dem[i] for i in model.answers)+sum(model.s2dis[i]*model.PBAT_DIS[i] for i in model.answers))/sum(Pdem[i] for i in model.answers)
-    #return price*timeInterval*(sum(Pdem[i]+model.x[i]-model.y[i]-PV_power[i] for i in Pdem))
+    return (summation(Ppv_dem,index=model.answers) + summation(model.PBAT_DIS,index=model.answers)) / summation(Pdem,index=model.answers)
+    #return (sum(Ppv_dem[i] for i in model.answers)+sum(model.s2dis[i]*model.PBAT_DIS[i] for i in model.answers))/sum(Pdem[i] for i in model.answers)
 model.obj=Objective(rule=obj_rule, sense = maximize)
 
-#model.obj= Objective(expr= price*timeInterval*(sum(Pdem[i]+(model.s1[i]*model.x[i]-model.s2[i]*model.y[i])-PV_power[i] for i in Pdem)), sense = minimize )
 
 print("#################################################")
 print("Constraints")
 print("#################################################")
-#model.limits=ConstraintList()
-#model.con1=Constraint()
-#def con_rule(model, m):
-
-#    return sum(a[i,m]*model.x[i] for i in N) >= b[m]
-#model.con5 = Constraint(model.SoC_Battery, rule=con_rule)
-
-     
-#def con_rule1(model,m):
-#    return SoC + Eff_Charging*sum(model.x[m]*model.s1[m])-(1/Eff_Discharging)*model.y[m]*model.s2[m] >= 20
-#model.con1=Constraint(model.answers,rule=con_rule1)
 
 def con_rule1(model,m):
     return PV[m]==Ppv_dem[m]+model.s1ch[m]*model.PBAT_CH[m]+model.g2exp[m]*model.PGRID_EXP[m]   
@@ -151,16 +139,12 @@ def con_rule2(model,m):
 model.con2=Constraint(model.answers,rule=con_rule2)
 
 def con_rule3(model,m):
-    return model.SoC[m+1]==SoC[0] + model.PBAT_CH[m]*model.s1ch[m]-model.PBAT_DIS[m]*model.s2dis[m] 
+    return model.SoC[m+1]==SoC[0] + Eff_Charging*model.PBAT_CH[m]*model.s1ch[m]-(1/Eff_Discharging)*model.PBAT_DIS[m]*model.s2dis[m] 
 model.con3=Constraint(model.answers,rule=con_rule3)
 
 def con_rule4(model,m):
     return model.g1imp[m]+model.g2exp[m]==1
 model.con4=Constraint(model.answers,rule=con_rule4)
-#def con_rule4(model,m):
-#    return model.SoC[0]==35
-#model.con4=Constraint(model.answers,rule=con_rule4)
-#model.con4=Constraint(model.SoC[0]==35)
 
 def con_rule5(model,m):
     return model.s1ch[m]+model.s2dis[m]==1 
