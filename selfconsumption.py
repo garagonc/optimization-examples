@@ -95,7 +95,10 @@ SoC_Battery={0:35, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0}
 N=len(Pdem)
 Eff_Charging=0.9
 Eff_Discharging= 0.7
-SoC=20
+
+SoC=PV
+SoC[1440]=1
+SoC[0]=35
 #print(Pdem[4],PV_power[2])
 #print(sum(Pdem[i] for i in Pdem))
 #print(sum(Pdem[i]*PV_power[i] for i in Pdem))
@@ -104,7 +107,7 @@ SoC=20
  #   print(x)
 model = ConcreteModel()
 model.answers=range(N)
-model.PBAT_CH= Var(model.answers,bounds=(0,5.6))    #charging
+model.PBAT_CH= Var(model.answers,bounds=(-5.6,5.6))    #charging
 model.PBAT_DIS=Var(model.answers, bounds=(0,5.6))    #discharging
 model.PGRID_EXP=Var(model.answers)
 model.PGRID_IMP=Var(model.answers)
@@ -146,16 +149,24 @@ print("#################################################")
 #model.con1=Constraint(model.answers,rule=con_rule1)
 
 def con_rule1(model,m):
-    return PV[m]-Ppv_dem[m]-model.s1ch[m]*model.PBAT_CH[m]-model.PGRID_EXP[m] == 0   
+    return PV[m]==Ppv_dem[m]+model.s1ch[m]*model.PBAT_CH[m]+model.PGRID_EXP[m]   
 model.con1=Constraint(model.answers,rule=con_rule1)
 
 def con_rule2(model,m):
-    return Pdem[m]==Ppv_dem[m] + model.s2dis[m]*model.PBAT_DIS[m] + model.PGRID_EXP[m]
+    return Pdem[m]==Ppv_dem[m] + model.s2dis[m]*model.PBAT_DIS[m] + model.PGRID_IMP[m]
 model.con2=Constraint(model.answers,rule=con_rule2)
 
 def con_rule3(model,m):
-    return model.s1ch[m]*model.PBAT_CH[m] == 0.6 + model.s2dis[m]*model.PBAT_DIS[m] 
+    return SoC[m+1]==SoC[m] + model.PBAT_CH[m]*model.s1ch[m]-model.PBAT_DIS[m]*model.s2dis[m] 
 model.con3=Constraint(model.answers,rule=con_rule3)
+
+def con_rule4(model,j):
+    return (20, SoC[j],95)
+model.con4=Constraint(model.answers,rule=con_rule4)
+
+def con_rule5(model,m):
+    return model.s1ch[m]+model.s2dis[m]<=1 
+model.con5=Constraint(model.answers,rule=con_rule5)
 #model.con1=Constraint(expr = (SoC_Battery[i]+Eff_Charging*model.x[i]+(1/Eff_Discharging)*model.y[i] for i in Pdem) >= 20)
 #model.con2=Constraint(expr = SoC_Battery[i]+Eff_Charging*model.x[i]+(1/Eff_Discharging)*model.y[i] <= 80)
 #model.con3=Constraint(expr = model.s1[i]+model.s2[i]<=1)
@@ -214,6 +225,34 @@ for value in y:
 plt.plot(x5, y5)
 
 plt.show() 
+
+listsSoC = sorted(SoC.items()) # sorted by key, return a list of tuples
+x8, y8 = zip(*listsSoC) # unpack a list of pairs into two tuples
+plt.plot(x8, y8)
+
+plt.show()
+
+listsS1 = sorted(instance.s1ch.items()) # sorted by key, return a list of tuples
+x6, y = zip(*listsS1) # unpack a list of pairs into two tuples
+y6=[]
+for value in y:
+    y6.append(value.value)
+
+plt.plot(x6, y6)
+
+plt.show()
+
+listsS2 = sorted(instance.s2dis.items()) # sorted by key, return a list of tuples
+x7, y = zip(*listsS1) # unpack a list of pairs into two tuples
+y7=[]
+for value in y:
+    y7.append(value.value)
+
+plt.plot(x7, y7)
+
+plt.show()
+
+
   
 """
 #for key, value in instance.x.iteritems():
