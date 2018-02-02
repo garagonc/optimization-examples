@@ -121,9 +121,10 @@ print("#################################################")
       
       
 def obj_rule(model):
-    return (summation(Ppv_dem,index=model.answers) + summation(model.PBAT_DIS,index=model.answers)) / summation(Pdem,index=model.answers)
+    #return (summation(Ppv_dem,index=model.answers) + summation(model.PBAT_DIS,index=model.answers)) / summation(Pdem,index=model.answers)
     #return (sum(Ppv_dem[i] for i in model.answers)+sum(model.s2dis[i]*model.PBAT_DIS[i] for i in model.answers))/sum(Pdem[i] for i in model.answers)
-model.obj=Objective(rule=obj_rule, sense = maximize)
+    return summation(model.PGRID_IMP,index=model.answers)+ summation(model.PGRID_EXP,index=model.answers)
+model.obj=Objective(rule=obj_rule, sense = minimize)
 
 
 print("#################################################")
