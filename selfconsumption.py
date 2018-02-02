@@ -98,7 +98,7 @@ Eff_Discharging= 0.7
 
 SoC=PV
 SoC[1440]=1
-SoC[0]=35
+#SoC[0]=35
 #print(Pdem[4],PV_power[2])
 #print(sum(Pdem[i] for i in Pdem))
 #print(sum(Pdem[i]*PV_power[i] for i in Pdem))
@@ -107,10 +107,12 @@ SoC[0]=35
  #   print(x)
 model = ConcreteModel()
 model.answers=range(N)
+model.lengthSoC=range(N+1)
 model.PBAT_CH= Var(model.answers,bounds=(-5.6,5.6))    #charging
 model.PBAT_DIS=Var(model.answers, bounds=(0,5.6))    #discharging
 model.PGRID_EXP=Var(model.answers)
 model.PGRID_IMP=Var(model.answers)
+model.SoC=Var(model.lengthSoC,bounds=(20,95))
 model.s1ch=Var(model.answers,within=Binary)
 model.s2dis=Var(model.answers,within=Binary)
 #model.SoC_Battery=Var(model.answers, initialize=35, domain=Integers, bounds=(0,100))
@@ -157,12 +159,13 @@ def con_rule2(model,m):
 model.con2=Constraint(model.answers,rule=con_rule2)
 
 def con_rule3(model,m):
-    return SoC[m+1]==SoC[m] + model.PBAT_CH[m]*model.s1ch[m]-model.PBAT_DIS[m]*model.s2dis[m] 
+    return model.SoC[m+1]==model.SoC[m] + model.PBAT_CH[m]*model.s1ch[m]-model.PBAT_DIS[m]*model.s2dis[m] 
 model.con3=Constraint(model.answers,rule=con_rule3)
 
-def con_rule4(model,j):
-    return (20, SoC[j],95)
-model.con4=Constraint(model.answers,rule=con_rule4)
+#def con_rule4(model,m):
+#    return model.SoC[0]==35
+#model.con4=Constraint(model.answers,rule=con_rule4)
+#model.con4=Constraint(model.SoC[0]==35)
 
 def con_rule5(model,m):
     return model.s1ch[m]+model.s2dis[m]<=1 
@@ -183,6 +186,8 @@ print("#################################################")
 # Create a model instance and optimize
 
 instance=model.create()
+#model.pprint()
+
 results = opt.solve(instance)
 
 instance.solutions.load_from(results)
@@ -226,8 +231,12 @@ plt.plot(x5, y5)
 
 plt.show() 
 
-listsSoC = sorted(SoC.items()) # sorted by key, return a list of tuples
-x8, y8 = zip(*listsSoC) # unpack a list of pairs into two tuples
+listsSoC = sorted(instance.SoC.items()) # sorted by key, return a list of tuples
+x8, y = zip(*listsSoC) # unpack a list of pairs into two tuples
+y8=[]
+for value in y:
+    y8.append(value.value)
+
 plt.plot(x8, y8)
 
 plt.show()
