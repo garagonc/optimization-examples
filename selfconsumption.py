@@ -159,7 +159,7 @@ def con_rule2(model,m):
 model.con2=Constraint(model.answers,rule=con_rule2)
 
 def con_rule3(model,m):
-    return model.SoC[m+1]==model.SoC[m] + model.PBAT_CH[m]*model.s1ch[m]-model.PBAT_DIS[m]*model.s2dis[m] 
+        return model.SoC[m+1]==35 + model.PBAT_CH[m]*model.s1ch[m]-model.PBAT_DIS[m]*model.s2dis[m] 
 model.con3=Constraint(model.answers,rule=con_rule3)
 
 #def con_rule4(model,m):
