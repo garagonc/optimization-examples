@@ -32,7 +32,8 @@ import string
 #opt = SolverFactory('glpk',executable="C:/Users/garagon/Anaconda3/pkgs/glpk-4.63-vc14_0/Library/bin/glpsol")
 #opt = SolverFactory('glpk',executable="C:/ProgramData/Anaconda3/pkgs/glpk-4.63-vc14_0/Library/bin/glpsol")
 #opt= SolverFactory("ipopt", executable="C:/Users/garagon/Anaconda3/pkgs/ipopt-3.11.1-2/Library/bin/ipopt")
-opt= SolverFactory("ipopt", executable="C:/ProgramData/Anaconda3/pkgs/ipopt-3.11.1-2/Library/bin/ipopt")
+#opt= SolverFactory("ipopt", executable="C:/ProgramData/Anaconda3/pkgs/ipopt-3.11.1-2/Library/bin/ipopt")
+opt= SolverFactory("gurobi")
 
 # A simple model with binary variables and
 # an empty constraint list.
@@ -98,8 +99,8 @@ SoC[1440]=1
 model = ConcreteModel()
 model.lengthSoC=RangeSet(0,N)
 model.answers=RangeSet(0,N-1)
-model.PBAT_CH= Var(model.answers,bounds=(-5.6,5.6))    #charging
-model.PBAT_DIS=Var(model.answers, bounds=(0,5.6))    #discharging
+model.PBAT_CH= Var(model.answers,bounds=(0,6.4))    #charging
+model.PBAT_DIS=Var(model.answers, bounds=(0,6.4))    #discharging
 model.PGRID_EXP=Var(model.answers, within=NonNegativeReals)
 model.PGRID_IMP=Var(model.answers, within=NonNegativeReals)
 model.SoC=Var(model.lengthSoC,bounds=(20,95), initialize=35)
@@ -140,7 +141,7 @@ def con_rule2(model,m):
 model.con2=Constraint(model.answers,rule=con_rule2)
 
 def con_rule3(model,m):
-    return model.SoC[m+1]==SoC[0] + Eff_Charging*model.PBAT_CH[m]*model.s1ch[m]-(1/Eff_Discharging)*model.PBAT_DIS[m]*model.s2dis[m] 
+    return model.SoC[m+1]==model.SoC[0] + Eff_Charging*model.PBAT_CH[m]*model.s1ch[m]-(1/Eff_Discharging)*model.PBAT_DIS[m]*model.s2dis[m] 
 model.con3=Constraint(model.answers,rule=con_rule3)
 
 def con_rule4(model,m):
