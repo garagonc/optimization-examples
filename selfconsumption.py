@@ -72,17 +72,7 @@ for i,value in Pdem.items():
 #print("Este es el tamano de Pdem: "+str(len(Pdem)))
 #print("Este es el tamano de PV: "+str(len(PV)))
 
-lists = sorted(Pdem.items()) # sorted by key, return a list of tuples
-x1, y1 = zip(*lists) # unpack a list of pairs into two tuples
-plt.plot(x1, y1)
 
-listsPV = sorted(PV.items()) # sorted by key, return a list of tuples
-x2, y2 = zip(*listsPV) # unpack a list of pairs into two tuples
-plt.plot(x2, y2)
-
-listsPV_dem = sorted(Ppv_dem.items()) # sorted by key, return a list of tuples
-x3, y3 = zip(*listsPV_dem) # unpack a list of pairs into two tuples
-plt.plot(x3, y3)
 
 
 
@@ -106,15 +96,17 @@ SoC[1440]=1
 #for x in Pdem:
  #   print(x)
 model = ConcreteModel()
-model.answers=range(N)
-model.lengthSoC=range(N+1)
+model.lengthSoC=RangeSet(0,N)
+model.answers=RangeSet(0,N-1)
 model.PBAT_CH= Var(model.answers,bounds=(-5.6,5.6))    #charging
 model.PBAT_DIS=Var(model.answers, bounds=(0,5.6))    #discharging
-model.PGRID_EXP=Var(model.answers)
-model.PGRID_IMP=Var(model.answers)
-model.SoC=Var(model.lengthSoC,bounds=(20,95))
+model.PGRID_EXP=Var(model.answers, within=NonNegativeReals)
+model.PGRID_IMP=Var(model.answers, within=NonNegativeReals)
+model.SoC=Var(model.lengthSoC,bounds=(20,95), initialize=35)
 model.s1ch=Var(model.answers,within=Binary)
 model.s2dis=Var(model.answers,within=Binary)
+model.g1imp=Var(model.answers,within=Binary)
+model.g2exp=Var(model.answers,within=Binary)
 #model.SoC_Battery=Var(model.answers, initialize=35, domain=Integers, bounds=(0,100))
 #print(model.s1.bounds)
 #positive power from storage means discharging
@@ -151,24 +143,27 @@ print("#################################################")
 #model.con1=Constraint(model.answers,rule=con_rule1)
 
 def con_rule1(model,m):
-    return PV[m]==Ppv_dem[m]+model.s1ch[m]*model.PBAT_CH[m]+model.PGRID_EXP[m]   
+    return PV[m]==Ppv_dem[m]+model.s1ch[m]*model.PBAT_CH[m]+model.g2exp[m]*model.PGRID_EXP[m]   
 model.con1=Constraint(model.answers,rule=con_rule1)
 
 def con_rule2(model,m):
-    return Pdem[m]==Ppv_dem[m] + model.s2dis[m]*model.PBAT_DIS[m] + model.PGRID_IMP[m]
+    return Pdem[m]==Ppv_dem[m] + model.s2dis[m]*model.PBAT_DIS[m] + model.g1imp[m]*model.PGRID_IMP[m]
 model.con2=Constraint(model.answers,rule=con_rule2)
 
 def con_rule3(model,m):
-        return model.SoC[m+1]==35 + model.PBAT_CH[m]*model.s1ch[m]-model.PBAT_DIS[m]*model.s2dis[m] 
+    return model.SoC[m+1]==SoC[0] + model.PBAT_CH[m]*model.s1ch[m]-model.PBAT_DIS[m]*model.s2dis[m] 
 model.con3=Constraint(model.answers,rule=con_rule3)
 
+def con_rule4(model,m):
+    return model.g1imp[m]+model.g2exp[m]==1
+model.con4=Constraint(model.answers,rule=con_rule4)
 #def con_rule4(model,m):
 #    return model.SoC[0]==35
 #model.con4=Constraint(model.answers,rule=con_rule4)
 #model.con4=Constraint(model.SoC[0]==35)
 
 def con_rule5(model,m):
-    return model.s1ch[m]+model.s2dis[m]<=1 
+    return model.s1ch[m]+model.s2dis[m]==1 
 model.con5=Constraint(model.answers,rule=con_rule5)
 #model.con1=Constraint(expr = (SoC_Battery[i]+Eff_Charging*model.x[i]+(1/Eff_Discharging)*model.y[i] for i in Pdem) >= 20)
 #model.con2=Constraint(expr = SoC_Battery[i]+Eff_Charging*model.x[i]+(1/Eff_Discharging)*model.y[i] <= 80)
@@ -213,6 +208,18 @@ for key,value in listsPStorageP:
 #plt.plot(x3, y3)
 
   """
+lists = sorted(Pdem.items()) # sorted by key, return a list of tuples
+x1, y1 = zip(*lists) # unpack a list of pairs into two tuples
+#plt.plot(x1, y1)
+
+listsPV = sorted(PV.items()) # sorted by key, return a list of tuples
+x2, y2 = zip(*listsPV) # unpack a list of pairs into two tuples
+#plt.plot(x2, y2)
+
+listsPV_dem = sorted(Ppv_dem.items()) # sorted by key, return a list of tuples
+x3, y3 = zip(*listsPV_dem) # unpack a list of pairs into two tuples
+#plt.plot(x3, y3)  
+  
 listsPStorageP = sorted(instance.PBAT_CH.items()) # sorted by key, return a list of tuples
 x4, y = zip(*listsPStorageP) # unpack a list of pairs into two tuples
 y4=[]
@@ -221,45 +228,84 @@ for value in y:
 
 #plt.plot(x4, y4)
 
-listsPStorageN = sorted(instance.PBAT_CH.items()) # sorted by key, return a list of tuples
+listsPStorageN = sorted(instance.PBAT_DIS.items()) # sorted by key, return a list of tuples
 x5, y = zip(*listsPStorageN) # unpack a list of pairs into two tuples
 y5=[]
 for value in y:
     y5.append(value.value)
 
-plt.plot(x5, y5)
-
-plt.show() 
-
-listsSoC = sorted(instance.SoC.items()) # sorted by key, return a list of tuples
-x8, y = zip(*listsSoC) # unpack a list of pairs into two tuples
-y8=[]
-for value in y:
-    y8.append(value.value)
-
-plt.plot(x8, y8)
-
-plt.show()
+#plt.plot(x5, y5)
 
 listsS1 = sorted(instance.s1ch.items()) # sorted by key, return a list of tuples
 x6, y = zip(*listsS1) # unpack a list of pairs into two tuples
 y6=[]
 for value in y:
     y6.append(value.value)
-
-plt.plot(x6, y6)
-
-plt.show()
-
+  
 listsS2 = sorted(instance.s2dis.items()) # sorted by key, return a list of tuples
 x7, y = zip(*listsS1) # unpack a list of pairs into two tuples
 y7=[]
 for value in y:
     y7.append(value.value)
+    
+listsSoC = sorted(instance.SoC.items()) # sorted by key, return a list of tuples
+x8, y = zip(*listsSoC) # unpack a list of pairs into two tuples
+y8=[]
+for value in y:
+    y8.append(value.value)
+    
+listsSoC = sorted(instance.g1imp.items()) # sorted by key, return a list of tuples
+x9, y = zip(*listsSoC) # unpack a list of pairs into two tuples
+y9=[]
+for value in y:
+    y9.append(value.value)
+    
+listsSoC = sorted(instance.g2exp.items()) # sorted by key, return a list of tuples
+x10, y = zip(*listsSoC) # unpack a list of pairs into two tuples
+y10=[]
+for value in y:
+    y10.append(value.value)
 
+fig1=plt.subplot(3,4,1)
+fig1.set_title('Demand') 
+plt.plot(x1, y1)
+
+fig2=plt.subplot(3,4,2)
+fig2.set_title('PV')
+plt.plot(x2, y2)
+
+fig4=plt.subplot(3,4,3)
+fig4.set_title('Storage charging') 
+plt.plot(x4, y4)
+
+fig5=plt.subplot(3,4,4)
+fig5.set_title('Storage discharging')
+plt.plot(x5, y5)
+
+fig6=plt.subplot(3,4,5)
+fig6.set_title('S1 Charging')
+plt.plot(x6, y6)
+
+fig7=plt.subplot(3,4,6)
+fig7.set_title('S2 discharging')
 plt.plot(x7, y7)
 
-plt.show()
+fig8=plt.subplot(3,4,7)
+fig8.set_title('SoC')
+plt.plot(x8, y8)
+
+fig9=plt.subplot(3,4,8)
+fig9.set_title('S1GridI')
+plt.plot(x9, y9)
+
+fig10=plt.subplot(3,4,9)
+fig10.set_title('S2GridE')
+plt.plot(x10, y10)
+
+plt.show() 
+
+
+
 
 
   
