@@ -58,7 +58,7 @@ Capacity=6.4*3600       #Joule
 model = ConcreteModel()
 model.lengthSoC=RangeSet(0,N)
 model.answers=RangeSet(0,N-1)
-model.PBAT= Var(model.answers,bounds=(-5.6,5.6))    #charging: PBAT<0,  disc: PBAT>0
+model.PBAT= Var(model.answers,bounds=(-5.6,5.6),initialize=0)    #charging: PBAT<0,  disc: PBAT>0
 model.PGRID=Var(model.answers)                      #export: PGRID<0,   imp: PGRID>0 
 model.SoC=Var(model.lengthSoC,bounds=(0.20,0.95))
 
@@ -119,39 +119,46 @@ x2, y2 = zip(*listsPV) # unpack a list of pairs into two tuples
 
 listsPV_dem = sorted(Ppv_dem.items()) # sorted by key, return a list of tuples
 x3, y3 = zip(*listsPV_dem) # unpack a list of pairs into two tuples
-
-fig1=plt.subplot(1,3,1)
-fig1.set_title('Battery')
-plt.plot(x1, y1,label='Pdem')
-plt.plot(x2, y2,label='PV')
-plt.plot(x3, y3,label='PVdem')
-plt.legend()
-
-      
+     
 listsPStorageP = sorted(instance.PBAT.items()) # sorted by key, return a list of tuples
 x4, y = zip(*listsPStorageP) # unpack a list of pairs into two tuples
 y4=[]
 for value in y:
     y4.append(value.value)
 
+listsSOC= sorted(instance.SoC.items()) # sorted by key, return a list of tuples
+x5, y = zip(*listsSOC) # unpack a list of pairs into two tuples
+y5=[]
+for value in y:
+    y5.append(value.value)
+    
 listsImport = sorted(instance.PGRID.items()) # sorted by key, return a list of tuples
 x6, y = zip(*listsImport) # unpack a list of pairs into two tuples
 y6=[]
 for value in y:
     y6.append(value.value)
 
+fig1=plt.subplot(4,1,1)
+fig1.set_title('Power Summary')
+plt.plot(x1, y1,label='Demand')
+plt.plot(x2, y2,label='PV')
+plt.legend()
 
-fig2=plt.subplot(1,3,2)
-fig2.set_title('Battery') 
+fig2=plt.subplot(4,1,2)
+fig2.set_title('Import/Export')
+plt.plot(x6, y6,'g')
+
+fig3=plt.subplot(4,1,3)
+fig3.set_title('Battery Ch/Dis') 
 plt.plot(x4, y4)
 
-fig3=plt.subplot(1,3,3)
-fig3.set_title('Grid')
-plt.plot(x6, y6)
+fig4=plt.subplot(4,1,4)
+fig4.set_title('Battery SOC') 
+plt.plot(x5, y5)
 
+plt.tight_layout()
+plt.savefig('Results_0.png')
 
-plt.show()
-  
 print(results)
 
 
