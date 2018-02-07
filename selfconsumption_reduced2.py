@@ -52,7 +52,7 @@ for i in keysPV:
 N=len(Pdem)
 Eff_Charging=0.9
 Eff_Discharging= 0.7
-Capacity=6.4*3600       #Joule
+Capacity=9.6*3600   #kWs
 
 model = ConcreteModel()
 model.lengthSoC=RangeSet(0,N)
@@ -61,6 +61,15 @@ model.PBAT= Var(model.answers,bounds=(-5.6,5.6))
 model.PGRID=Var(model.answers,within=NonNegativeReals,initialize=0)    #Export is not allowed                      
 model.SoC=Var(model.lengthSoC,bounds=(0.20,0.95))
 model.PVmod=Var(model.answers,bounds=(0,1),initialize=1)
+
+
+print("#################################################")
+print("Objective function")
+print("#################################################")  
+def obj_rule(model):
+    return sum(model.PVmod[m]*PV[m] for m in model.answers)
+model.obj=Objective(rule=obj_rule, sense = maximize)
+print("Objective is the minimization of import")
 
 print("#################################################")
 print("Constraints")

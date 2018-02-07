@@ -52,7 +52,7 @@ for i in keysPV:
 N=len(Pdem)
 Eff_Charging=0.9
 Eff_Discharging= 0.7
-Capacity=6.4*3600       #Joule
+Capacity=9.6*3600   #kWs
 
 model = ConcreteModel()
 model.lengthSoC=RangeSet(0,N)
