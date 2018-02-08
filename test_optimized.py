@@ -256,6 +256,7 @@ one_ph_load_model = df1['Active Power phase R']
 #######################################################################
 ##########Calculation with PV and storage
 #######################################################################
+
 os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT Repository\optimization-agent')
 script_dir = os.path.dirname(__file__)
 results_dir = os.path.join(os.path.dirname(__file__), 'results/')
