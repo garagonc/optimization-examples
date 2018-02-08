@@ -21,11 +21,8 @@ from pyomo.opt import SolverFactory
 ############################################################################
 def saveArrayInExcel(array,directory,name_of_file="Standard"):
     dfName=pandas.DataFrame(array)
-    # Create a Pandas Excel writer using XlsxWriter as the engine.
     writer = pandas.ExcelWriter(directory + name_of_file +'.xlsx', engine='xlsxwriter')
-    # Convert the dataframe to an XlsxWriter Excel object.
     dfName.to_excel(writer, sheet_name='Sheet 1')
-    # Close the Pandas Excel writer and output the Excel file.
     writer.save()
     return 1
 
@@ -38,16 +35,9 @@ def getLoadskw():
     array.append(getTime())
     while True:
         name=dssLoads.Name
-        #kW=dssLoads.kw#dssPowers(1)
         kW=dssCktElement.seqpowers[2]
         array.append(name)
         array.append(kW)
-       # print(
-        #        'Name={name} \t kW={kW}'.format(
-         #      name=dssLoads.Name,
-         #      kW=dssLoads.kW
-         #      )
-         #       )
         if not dssLoads.Next > 0:
             break
     return array
@@ -75,6 +65,11 @@ def getkWhStorage():
     dssText.Command = '? Storage.AtPVNode.kWhrated'
     kWh_storage= dssText.Result
     return kWh_storage
+
+def setStrEff():
+    dssText.Command = 'Storage.AtPVNode.%EffCharge = 100'
+    dssText.Command = 'Storage.AtPVNode.%EffDischarge = 100'
+    return 
 
 def optimizeZero(loadForecast,pvForecast,solver):
     
@@ -141,7 +136,7 @@ def optimizeZero(loadForecast,pvForecast,solver):
     def con_rule1(model,m):
         return Pdem[m]==Ppv_dem[m] + model.PBAT[m] + model.PGRID[m] 
     def con_rule2(model,m):
-        return model.SoC[m+1]==model.SoC[m] - model.PBAT[m]*15*60/storageCapacity 
+        return model.SoC[m+1]==model.SoC[m] - model.PBAT[m]*60/storageCapacity 
     def con_rule3(model):
         return model.SoC[0]==initialSOC
     
@@ -152,7 +147,7 @@ def optimizeZero(loadForecast,pvForecast,solver):
     ###########################################################################
     #######                         SOLVING                             #######
     ###########################################################################
-    solver.solve(model)
+    results=solver.solve(model)
     
     listsPStorageP = sorted(model.PBAT.items()) # sorted by key, return a list of tuples
     x4, y = zip(*listsPStorageP) # unpack a list of pairs into two tuples
@@ -160,7 +155,7 @@ def optimizeZero(loadForecast,pvForecast,solver):
     for value in y:
         PStorage.append(value.value)
 
-    return PStorage
+    return PStorage,model
 
 def controlOptimalStorage(pOut,SoC_Battery,PV_power, dss_circuit_load):
     #pOut: Output power of the battery ---> dis: positive, ch: negative 
@@ -170,23 +165,36 @@ def controlOptimalStorage(pOut,SoC_Battery,PV_power, dss_circuit_load):
     
     if pOut>0:
         dssText.Command = 'Storage.AtPVNode.State = Discharging';
-        dssText.Command = 'Storage.AtPVNode.%discharge ='+str(pOut/storageRatedkW);
+        dssText.Command = 'Storage.AtPVNode.%discharge ='+str(pOut/storageRatedkW*100);
         dssText.Command = '? Storage.AtPVNode.state';
-        kwTarget_storage = "A:Charging R:" + dssText.Result;
-        return (kwTarget_storage, SoC_Battery,PV_power,dss_circuit_load)   
+        kwTarget_storage = "A:Discharging R:" + dssText.Result;
+        dssText.Command = '? Storage.AtPVNode.%discharge';
+        dischargepower= dssText.Result;
+        dssText.Command = '? Storage.AtPVNode.%charge';
+        chargepower= dssText.Result;        
+        return (kwTarget_storage, SoC_Battery,PV_power,dss_circuit_load,pOut,chargepower,dischargepower)   
         
     elif pOut<0:
         dssText.Command = 'Storage.AtPVNode.State = Charging';
-        dssText.Command = '? Storage.AtPVNode.%charge ='+str(-pOut/storageRatedkW);
+        dssText.Command = 'Storage.AtPVNode.%charge ='+str(-pOut/storageRatedkW*100);
         dssText.Command = '? Storage.AtPVNode.state';
         kwTarget_storage = "A:Charging R:" + dssText.Result;
-        return (kwTarget_storage, SoC_Battery,PV_power,dss_circuit_load)   
+        dssText.Command = '? Storage.AtPVNode.%discharge';
+        dischargepower= dssText.Result;
+        dssText.Command = '? Storage.AtPVNode.%charge';
+        chargepower= dssText.Result;   
+        return (kwTarget_storage, SoC_Battery,PV_power,dss_circuit_load,pOut,chargepower,dischargepower)   
     else:
         dssText.Command = 'Storage.AtPVNode.State = Idling';
         dssText.Command = '? Storage.AtPVNode.state';
-        kwTarget_storage = "A:Charging R:" + dssText.Result;
-        return (kwTarget_storage, SoC_Battery,PV_power,dss_circuit_load)   
-
+        kwTarget_storage = "A:NK R:" + dssText.Result;
+        dssText.Command = '? Storage.AtPVNode.%stored'
+        stored_storage = "%stored:" + dssText.Result
+        dssText.Command = '? Storage.AtPVNode.%discharge';
+        dischargepower= dssText.Result;
+        dssText.Command = '? Storage.AtPVNode.%charge';
+        chargepower= dssText.Result;   
+        return (kwTarget_storage,stored_storage,dss_circuit_load,pOut,chargepower,dischargepower)
       
 
 ##########################################################################
@@ -288,8 +296,10 @@ optimizer=SolverFactory("ipopt", executable="C:/Users/guemruekcue/Anaconda3/pkgs
 
 
 #%%
-batt=optimizeZero(ldsrc,pvsrc,optimizer)
+batt,result=optimizeZero(ldsrc,pvsrc,optimizer)
 #%%
+setStrEff()
+
 for i in range(num_steps):
     
     if i > 0:

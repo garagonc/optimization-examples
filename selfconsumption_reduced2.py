@@ -79,7 +79,7 @@ def con_rule2(model,m):
 model.con2=Constraint(model.answers,rule=con_rule2)
 
 def con_rule3(model,m):
-    return model.SoC[m+1]==model.SoC[m] - model.PBAT[m]*15*60/Capacity 
+    return model.SoC[m+1]==model.SoC[m] - model.PBAT[m]*60/Capacity 
 model.con3=Constraint(model.answers,rule=con_rule3)
 
 def con_rule6(model):
