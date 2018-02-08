@@ -1,4 +1,4 @@
-﻿set datapath='U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT Repository\optimization-agent\components
+﻿set datapath='U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT Repository\optimization-agent\components'
 clear
 Set DefaultBaseFrequency=50
 
