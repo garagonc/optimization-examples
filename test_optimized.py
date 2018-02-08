@@ -218,8 +218,8 @@ dssGenerators=dssCircuit.Generators
 dssPVsystems=dssCircuit.PVSystems
 
 print ("Preparing compilation of main.dss")
-os.chdir(r'C:\Users\guemruekcue\internship\optimization-agent')
-OpenDSS_folder_path = r'C:\Users\guemruekcue\internship\optimization-agent'
+os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT Repository\optimization-agent')
+OpenDSS_folder_path = r'U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT Repository\optimization-agent'
 filename = 'main.dss'
 engine.ClearAll()
 dssText.Command = "compile " + filename
@@ -229,7 +229,7 @@ print ("main.dss compiled")
 ##########Convert the profile to 15 minute resolution
 #######################################################################
 
-os.chdir(r'C:\Users\guemruekcue\internship\optimization-agent\profiles')
+os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT Repository\optimization-agent\profiles')
 file = 'residential.xlsx'
 xls = pandas.ExcelFile(file)
 df = xls.parse(xls.sheet_names[0])
@@ -290,9 +290,9 @@ num_steps=1440
 
 #%%
 
-ldsrc="C:/Users/guemruekcue/Projects/new/optimization-agent/profiles/load_profile_1.txt"
-pvsrc="C:/Users/guemruekcue/Projects/new/optimization-agent/profiles/PV_profile3.txt"
-optimizer=SolverFactory("ipopt", executable="C:/Users/guemruekcue/Anaconda3/pkgs/ipopt-3.11.1-2/Library/bin/ipopt")
+ldsrc="U:/Projekte/UCC/Storage4Grid/Simulation/python/FIT Repository/optimization-agent/profiles/load_profile_1.txt"
+pvsrc="U:/Projekte/UCC/Storage4Grid/Simulation/python/FIT Repository/optimization-agent/profiles/PV_profile3.txt"
+optimizer= SolverFactory("ipopt", executable="C:/Users/garagon/Anaconda3/pkgs/ipopt-3.11.1-2/Library/bin/ipopt")
 
 
 #%%
