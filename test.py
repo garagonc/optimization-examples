@@ -117,9 +117,14 @@ def getStoredStorage():
     return stored_storage
 
 def getkWStorage():
-    dssText.Command = '? Storage.AtPVNode.kW'
+    dssText.Command = '? Storage.AtPVNode.kWrated'
     kW_storage = dssText.Result
     return kW_storage
+
+def getkWhStorage():
+    dssText.Command = '? Storage.AtPVNode.kWhrated'
+    kWh_storage= dssText.Result
+    return kWh_storage
 
 def controlRasmusStorage(SoC_Battery,PV_power, dss_circuit_load):
     #return dss_circuit_load#print(str(dss_circuit_load))
@@ -131,16 +136,16 @@ def controlRasmusStorage(SoC_Battery,PV_power, dss_circuit_load):
     PV_high=0.7
     circuit_power=float(dss_circuit_load)
     
-    if (PV_power >= circuit_power) and (float(SoC_Battery) <= low_SoC):
+    if (PV_power >= circuit_power) and (float(SoC_Battery) <= high_SoC):
         dssText.Command = 'Storage.AtPVNode.State = Charging';
         dssText.Command = '? Storage.AtPVNode.state';
         kwTarget_storage = "A:Charging R:" + dssText.Result;
         return (kwTarget_storage, SoC_Battery,PV_power,dss_circuit_load) 
     
     elif (PV_power >= circuit_power):
-        dssText.Command = 'Storage.AtPVNode.State = Charging';
+        dssText.Command = 'Storage.AtPVNode.State = Idling';
         dssText.Command = '? Storage.AtPVNode.state';
-        kwTarget_storage = "A:Disharging R:" + dssText.Result;
+        kwTarget_storage = "A:Charging R:" + dssText.Result;
         return (kwTarget_storage, SoC_Battery,PV_power,dss_circuit_load)
     
     elif (PV_power <= circuit_power) and (float(SoC_Battery) <= low_SoC):
@@ -150,7 +155,7 @@ def controlRasmusStorage(SoC_Battery,PV_power, dss_circuit_load):
         return (kwTarget_storage, SoC_Battery,PV_power,dss_circuit_load)
     
     elif (PV_power <= circuit_power):
-        dssText.Command = 'Storage.AtPVNode.State = DisCharging';
+        dssText.Command = 'Storage.AtPVNode.State = Discharging';
         dssText.Command = '? Storage.AtPVNode.state';
         kwTarget_storage = "A:Disharging R:" + dssText.Result;
         return (kwTarget_storage, SoC_Battery,PV_power,dss_circuit_load)
@@ -162,7 +167,7 @@ def controlRasmusStorage(SoC_Battery,PV_power, dss_circuit_load):
         dssText.Command = '? Storage.AtPVNode.%stored'
         stored_storage = "%stored:" + dssText.Result
         return (kwTarget_storage,stored_storage,dss_circuit_load)
-    
+ 
 def controlStoragePriceOptimization(PStorage,SoC_Battery,PV_power, Pdem, price,timeInterval):
 
     model = ConcreteModel()
@@ -176,7 +181,7 @@ def controlStoragePriceOptimization(PStorage,SoC_Battery,PV_power, Pdem, price,t
     model.limits.add(SoC_Battery <= 100)
     
 
-    opt = SolverFactory('glpk',executable="C:/Users/garagon/Anaconda3/pkgs/glpk-4.63-vc14_0/Library/bin/glpsol")
+    opt = SolverFactory('glpk',executable="C:/Users/guemruekcue/Anaconda3/pkgs/glpk-4.63-vc14_0/Library/bin/glpsol")
 # Create a model instance and optimize
 
     instance=model.create()
@@ -188,6 +193,7 @@ def controlStoragePriceOptimization(PStorage,SoC_Battery,PV_power, Pdem, price,t
         
     print(instance.x['hammer'].value)
     return 1
+
 ##########################################################################
 ###########
 ###########################################################################
@@ -219,8 +225,8 @@ dssPVsystems=dssCircuit.PVSystems
 #dssCircuit.Solution.Stepsize=60
 
 print ("Preparing compilation of main.dss")
-os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python')
-OpenDSS_folder_path = r'U:\Projekte\UCC\Storage4Grid\Simulation\python'
+os.chdir(r'C:\Users\guemruekcue\internship\optimization-agent')
+OpenDSS_folder_path = r'C:\Users\guemruekcue\internship\optimization-agent'
 filename = 'main.dss'
 engine.ClearAll()
 dssText.Command = "compile " + filename
@@ -232,7 +238,7 @@ print ("main.dss compiled")
 ##########convierte el profile a cada minuto por un día 1440 valores
 #######################################################################
 
-os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python\profiles')
+os.chdir(r'C:\Users\guemruekcue\internship\optimization-agent\profiles')
 file = 'residential.xlsx'
 xls = pandas.ExcelFile(file)
 df = xls.parse(xls.sheet_names[0])
@@ -260,7 +266,7 @@ one_ph_load_model = df1['Active Power phase R']
 ##########Calculation without anything
 #######################################################################
 #def Calculate():
-os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python')
+os.chdir(r'C:\Users\guemruekcue\internship\optimization-agent')
 script_dir = os.path.dirname(__file__)
 results_dir = os.path.join(os.path.dirname(__file__), 'results/')
 voltages=[]
@@ -321,7 +327,7 @@ saveArrayInExcel(load_profile,results_dir,"LoadProfileControl")
 ##########Calculation only with PV
 #######################################################################
 #def Calculate():
-os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python')
+os.chdir(r'C:\Users\guemruekcue\internship\optimization-agent')
 script_dir = os.path.dirname(__file__)
 results_dir = os.path.join(os.path.dirname(__file__), 'results/')
 voltages=[]
@@ -384,7 +390,7 @@ saveArrayInExcel(load_profile,results_dir,"LoadProfileControlPV")
 ##########Calculation with PV and storage
 #######################################################################
 #def Calculate():
-os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python')
+os.chdir(r'C:\Users\guemruekcue\internship\optimization-agent')
 script_dir = os.path.dirname(__file__)
 results_dir = os.path.join(os.path.dirname(__file__), 'results/')
 voltages=[]
@@ -458,88 +464,11 @@ saveArrayInExcel(load_profile,results_dir,"LoadProfileControlStorage")
 saveArrayInExcel(resStorage,results_dir,"StorageControl")
 dssText.Command = 'CloseDI'
 
+
 #######################################################################
 ##########Calculation with PV and storage and optimization of price
 #######################################################################
-#def Calculate():
-os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python')
-script_dir = os.path.dirname(__file__)
-results_dir = os.path.join(os.path.dirname(__file__), 'results/')
-voltages=[]
-vS1_opt=[]
-vS2_opt=[]
-vS3_opt=[]
-load_profile=[]
-timestamp=[]
-the_time =  datetime.combine(date.today(), time(0, 0))
-resStorage=[]
-LoadkW=[]
-x=0
-simTime=[]
 
-#we want 1 solution for each iteration so we can interact with the solution
-dssText.Command = 'enable Storage.AtPVNode'
-dssText.Command = 'solve mode=snap'
-dssText.Command = 'Set mode = daily stepsize=1m number=1'
-
-
-dssCircuit.Solution.dblHour=0.0
-
-#dssLoads.name='No52'
-#dssLoads.kW = 500
-#print(dssLoads.cfactor)
-#print(dssLoads.allnames)
-#print(dssLoads.kw)
-#print(dssCircuit.ActiveCktElement.powers)
-#print(dssCircuit.TotalPower)
-#for i in range(len(tri_ph_load_model)):
-
-print(dssPVsystems.Count)
-print(dssPVsystems.Idx)
-dssPVsystems.Name='PV_Menapace'
-print("Este es el nombre: "+dssPVsystems.Name)
-
-print("Este es el power: "+str(dssPVsystems.kw))
-
-print("Este el power de storage: "+str(getkWStorage()))
-num_steps=1440*2
-for i in range(num_steps):
-    
-    if i > 0:
-        LoadkW=getLoadskw()
-        Pdem=getLoadkwNo(54)
-        #resStorage.append(thresholdPowerStorage(current_value,0.7,2.2))
-        SoC_Battery=getStoredStorage()
-        #print("Este el power de storage: "+str(getkWStorage()))
-        PV_power=getPVPower('PV_Menapace')
-        
-        controlStoragePriceOptimization(getkWStorage(),SoC_Battery,PV_power, Pdem, 0.3,1)
-        #resStorage.append(controlRasmusStorage(SoC_Battery,PV_power, Pdem))
-    #dssCircuit.SetActiveBus('121117')
-    #puList = dssBus.puVmagAngle[0::2]
-    #current_value=puList[2]
-    #resStorage.append(thresholdVolStorage(current_value,1.01,0.98))
-    #print(dssCktElement.seqpowers)
-    dssSolution.solve()
-    #dssText.Command = 'Updatestorage'
-    load_profile.append(LoadkW)
-    #dssCircuit.SetActiveBus('82876')
-    dssCircuit.SetActiveBus('121117')
-    puList = dssBus.puVmagAngle[0::2]
-    voltages.append(puList)
-    vS1.append(puList[0])
-    vS2.append(puList[1])
-    vS3.append(puList[2])
-    timestamp.append(the_time)
-    the_time = the_time + timedelta(minutes=1)
-
-#dssCircuit.Loads.name ='No52'
-#dssCircuit.Loads.kW = 0
-#dssCircuit.Loads.name ='No52_S'
-#dssCircuit.Loads.kW = 0
-saveArrayInExcel(load_profile,results_dir,"LoadProfileControlStorage")
-saveArrayInExcel(resStorage,results_dir,"StorageControl")
-dssText.Command = 'CloseDI'
 
 #######################################################################
 ##########calculation with electric vehicle 
@@ -590,7 +519,7 @@ for i in range(len(tri_ph_load_model)):
 ##########plot of the voltage vectors
 #######################################################################
 
-os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python')
+os.chdir(r'C:\Users\guemruekcue\internship\optimization-agent')
 script_dir = os.path.dirname(__file__)
 results_dir = os.path.join(os.path.dirname(__file__), 'results/')
 file_name="Analysis by Giggi"
@@ -622,7 +551,7 @@ plt.show()
 if not os.path.isdir(results_dir):
     os.makedirs(results_dir)
 
-fig.savefig(results_dir + file_name + ".jpg")
+fig.savefig(results_dir + file_name + ".png")
 
 #######################################################################
 ##########saving info as an excel file

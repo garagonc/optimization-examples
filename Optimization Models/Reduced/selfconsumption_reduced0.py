@@ -60,7 +60,7 @@ model.lengthSoC=RangeSet(0,N)
 model.answers=RangeSet(0,N-1)
 model.PBAT= Var(model.answers,bounds=(-5.6,5.6),initialize=0)    #charging: PBAT<0,  disc: PBAT>0
 model.PGRID=Var(model.answers)                      #export: PGRID<0,   imp: PGRID>0 
-model.SoC=Var(model.lengthSoC,bounds=(20,95))
+model.SoC=Var(model.lengthSoC,bounds=(0.20,0.95))
 #TODO: 2 days horizon
 #TODO: check battery lifetime considerations
 

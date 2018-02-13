@@ -7,6 +7,9 @@ New Storage.AtPVNode phases=3 bus1=121117 kV=0.4  kva=5
 ~ enable=yes
 ~ %charge=20
 ~ %discharge=20
+~ %EffCharge=100
+~ %EffDischarge=100
+~ %IdlingkW =0
 !~ debugtrace=yes
 !~ DischargeTrigger=0.6 ChargeTrigger=0.4
 !~ dispmode=follow daily=dailyshape

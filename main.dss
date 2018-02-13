@@ -1,4 +1,4 @@
-set datapath=U:\Projekte\UCC\Storage4Grid\Simulation\python\components
+set datapath=C:\Users\guemruekcue\internship\optimization-agent\components
 clear
 Set DefaultBaseFrequency=50
 

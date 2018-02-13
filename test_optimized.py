@@ -163,9 +163,9 @@ def controlOptimalStorage(pOut,SoC_Battery,PV_power, dss_circuit_load):
     powstr=getkWStorage()
     storageRatedkW=float(powstr)
     
-    if pOut>0:
+    if pOut>0: 
+        dssText.Command = 'Storage.AtPVNode.%discharge ='+str(pOut/storageRatedkW*100)
         dssText.Command = 'Storage.AtPVNode.State = Discharging';
-        dssText.Command = 'Storage.AtPVNode.%discharge ='+str(pOut/storageRatedkW*100);
         dssText.Command = '? Storage.AtPVNode.state';
         kwTarget_storage = "A:Discharging R:" + dssText.Result;
         dssText.Command = '? Storage.AtPVNode.%discharge';
@@ -175,8 +175,8 @@ def controlOptimalStorage(pOut,SoC_Battery,PV_power, dss_circuit_load):
         return (kwTarget_storage, SoC_Battery,PV_power,dss_circuit_load,pOut,chargepower,dischargepower)   
         
     elif pOut<0:
+        dssText.Command = 'Storage.AtPVNode.%charge ='+str(-pOut/storageRatedkW*100)
         dssText.Command = 'Storage.AtPVNode.State = Charging';
-        dssText.Command = 'Storage.AtPVNode.%charge ='+str(-pOut/storageRatedkW*100);
         dssText.Command = '? Storage.AtPVNode.state';
         kwTarget_storage = "A:Charging R:" + dssText.Result;
         dssText.Command = '? Storage.AtPVNode.%discharge';
@@ -297,8 +297,6 @@ optimizer=SolverFactory("ipopt", executable="C:/Users/guemruekcue/Anaconda3/pkgs
 
 #%%
 batt,result=optimizeZero(ldsrc,pvsrc,optimizer)
-#%%
-setStrEff()
 
 for i in range(num_steps):
     
