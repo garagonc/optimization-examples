@@ -218,8 +218,8 @@ dssGenerators=dssCircuit.Generators
 dssPVsystems=dssCircuit.PVSystems
 
 print ("Preparing compilation of main.dss")
-os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT Repository\optimization-agent')
-OpenDSS_folder_path = r'U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT Repository\optimization-agent'
+os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT_Repository\optimization-agent')
+OpenDSS_folder_path = r'U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT_Repository\optimization-agent'
 filename = 'main.dss'
 engine.ClearAll()
 dssText.Command = "compile " + filename
@@ -229,7 +229,7 @@ print ("main.dss compiled")
 ##########Convert the profile to 15 minute resolution
 #######################################################################
 
-os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT Repository\optimization-agent\profiles')
+os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT_Repository\optimization-agent\profiles')
 file = 'residential.xlsx'
 xls = pandas.ExcelFile(file)
 df = xls.parse(xls.sheet_names[0])
@@ -257,7 +257,7 @@ one_ph_load_model = df1['Active Power phase R']
 ##########Calculation with PV and storage
 #######################################################################
 
-os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT Repository\optimization-agent')
+os.chdir(r'U:\Projekte\UCC\Storage4Grid\Simulation\python\FIT_Repository\optimization-agent')
 script_dir = os.path.dirname(__file__)
 results_dir = os.path.join(os.path.dirname(__file__), 'results/')
 voltages=[]
@@ -291,8 +291,8 @@ num_steps=1440
 
 #%%
 
-ldsrc="U:/Projekte/UCC/Storage4Grid/Simulation/python/FIT Repository/optimization-agent/profiles/load_profile_1.txt"
-pvsrc="U:/Projekte/UCC/Storage4Grid/Simulation/python/FIT Repository/optimization-agent/profiles/PV_profile3.txt"
+ldsrc="U:/Projekte/UCC/Storage4Grid/Simulation/python/FIT_Repository/optimization-agent/profiles/load_profile_1.txt"
+pvsrc="U:/Projekte/UCC/Storage4Grid/Simulation/python/FIT_Repository/optimization-agent/profiles/PV_profile3.txt"
 optimizer= SolverFactory("ipopt", executable="C:/Users/garagon/Anaconda3/pkgs/ipopt-3.11.1-2/Library/bin/ipopt")
 
 
