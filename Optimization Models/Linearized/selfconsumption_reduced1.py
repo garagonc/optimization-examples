@@ -8,6 +8,7 @@ Created on Mon Feb  5 09:56:07 2018
 from pyomo.environ import *
 from pyomo.opt import SolverFactory
 import matplotlib.pylab as plt
+from Rainflow import *
 
 ########################################
 ########################################
@@ -21,6 +22,7 @@ import matplotlib.pylab as plt
 # Create a solver
 
 opt= SolverFactory("ipopt", executable="C:/Users/guemruekcue/Anaconda3/pkgs/ipopt-3.11.1-2/Library/bin/ipopt")
+#opt= SolverFactory("bonmin", executable="C:/cygwin/home/bonmin/Bonmin-1.8.6/build/bin/bonmin")
 
 # A simple model with binary variables and
 # an empty constraint list.
@@ -33,7 +35,7 @@ price=0.3
 timeInterval=1
 
 
-file = open("C:/Users/guemruekcue/Projects/new/optimization-agent/profiles/load_profile_1.txt", 'r')
+file = open("C:/Users/guemruekcue/internship/optimization-agent/profiles/load_profile_1.txt", 'r')
 lines = file.read().splitlines()
 #lines=map(int, file.readlines())
 keys=range(len(lines))
@@ -41,7 +43,7 @@ Pdem = {}
 for i in keys:
     Pdem[keys[i]]=float(lines[i])
 
-file = open("C:/Users/guemruekcue/Projects/new/optimization-agent/profiles/PV_profile3.txt", 'r')
+file = open("C:/Users/guemruekcue/internship/optimization-agent/profiles/PV_profile3.txt", 'r')
 linesPV = file.read().splitlines()
 keysPV=range(len(linesPV))
 PV = {}
@@ -58,7 +60,8 @@ model = ConcreteModel()
 model.lengthSoC=RangeSet(0,N)
 model.answers=RangeSet(0,N-1)
 model.PBAT= Var(model.answers,bounds=(-5.6,5.6))        
-model.PGRID=Var(model.answers,within=NonNegativeReals,initialize=0)    #Export is not allowed                      
+#model.PGRID=Var(model.answers,within=NonNegativeReals,initialize=0)    #Export is not allowed
+model.PGRID=Var(model.answers,initialize=0)    #Export is allowed                          
 model.SoC=Var(model.lengthSoC,bounds=(0.20,0.95))
 model.PVmod=Var(model.answers,bounds=(0,1),initialize=1)
 
@@ -67,7 +70,8 @@ print("#################################################")
 print("Objective function")
 print("#################################################")  
 def obj_rule(model):
-    return sum(model.PGRID[m] for m in model.answers)
+    #return sum(model.PGRID[m] for m in model.answers)
+    return sum(model.PGRID[m]*model.PGRID[m] for m in model.answers)
 model.obj=Objective(rule=obj_rule, sense = minimize)
 print("Objective is the minimization of import")
 
@@ -92,21 +96,7 @@ print("Solving")
 print("#################################################")
 
 # Create a model instance and optimize
-instance=model.create()
-results=opt.solve(instance)
-
-print("#################################################")
-print("Solving")
-print("#################################################")
-
-# Create a model instance and optimize
-
-instance=model.create()
-#model.pprint()
-
-results=opt.solve(instance)
-
-
+results=opt.solve(model)
 
 print("#################################################")
 print("Plots")
@@ -118,25 +108,25 @@ x1, y1 = zip(*lists) # unpack a list of pairs into two tuples
 listsPV = sorted(PV.items()) # sorted by key, return a list of tuples
 x2, y2 = zip(*listsPV) # unpack a list of pairs into two tuples
 
-listsPVutil = sorted(instance.PVmod.items()) # sorted by key, return a list of tuples
+listsPVutil = sorted(model.PVmod.items()) # sorted by key, return a list of tuples
 x3, y = zip(*listsPVutil) # unpack a list of pairs into two tuples
 y3=[]
 for value in y:
-    y3.append(value.value*PV[y.index(value)])
+    y3.append(value.value)
      
-listsPStorageP = sorted(instance.PBAT.items()) # sorted by key, return a list of tuples
+listsPStorageP = sorted(model.PBAT.items()) # sorted by key, return a list of tuples
 x4, y = zip(*listsPStorageP) # unpack a list of pairs into two tuples
 y4=[]
 for value in y:
     y4.append(value.value)
 
-listsSOC= sorted(instance.SoC.items()) # sorted by key, return a list of tuples
+listsSOC= sorted(model.SoC.items()) # sorted by key, return a list of tuples
 x5, y = zip(*listsSOC) # unpack a list of pairs into two tuples
 y5=[]
 for value in y:
     y5.append(value.value)
     
-listsImport = sorted(instance.PGRID.items()) # sorted by key, return a list of tuples
+listsImport = sorted(model.PGRID.items()) # sorted by key, return a list of tuples
 x6, y = zip(*listsImport) # unpack a list of pairs into two tuples
 y6=[]
 for value in y:
@@ -166,18 +156,28 @@ plt.plot(x5, y5)
 plt.tight_layout()
 plt.savefig('Results_1.png')
 
-print(results)
-
-
-
 plt.show()
   
 print(results)
 print()
 print("PV generation potential:",sum(PV.values()))
-print("PV utilized potential:",sum(y3[m] for m in model.answers))
-print("Total import:",sum(y6))
+print("PV utilized potential:",sum(y3[m]*PV[m] for m in model.answers))
+print("Total export:",-sum(y6[m] for m in model.answers if y6[m]<0))
+print("Total import:",sum(y6[m] for m in model.answers if y6[m]>0))
 
+#%%
+#Rainflow counting: a list of tuples that contain load ranges and the corresponding number of cycles
+rf=count_cycles(y5)
+
+#Empirical parameters to determine rated cycle-life at different DoD ranges
+#Example chosen such that 4000 clycle lifetime at 80% DoD 
+A=2873.1
+B=-1.483
+
+#Degradation of life-cycle
+D_CL=sum(pair[1]/(A*pow(pair[0],B)) for pair in rf)
+
+print("Degradation of life-cycle:",D_CL)
 
 
 
