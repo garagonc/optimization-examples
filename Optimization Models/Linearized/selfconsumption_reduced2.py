@@ -160,10 +160,10 @@ plt.show()
   
 print(results)
 print()
-print("PV generation potential:",sum(PV.values()))
-print("PV utilized potential:",sum(y3[m]*PV[m] for m in model.answers))
-print("Total export:",-sum(y6[m] for m in model.answers if y6[m]<0))
-print("Total import:",sum(y6[m] for m in model.answers if y6[m]>0))
+print("PV generation potential  :",sum(PV.values())*60/3600,"kWh")
+print("PV utilized potential    :",sum(y3[m]*PV[m] for m in model.answers)*60/3600,"kWh")
+print("Total export             :",-sum(y6[m] for m in model.answers if y6[m]<0)*60/3600,"kWh")
+print("Total import             :",sum(y6[m] for m in model.answers if y6[m]>0)*60/3600,"kWh")
 
 #%%
 #Rainflow counting: a list of tuples that contain load ranges and the corresponding number of cycles
