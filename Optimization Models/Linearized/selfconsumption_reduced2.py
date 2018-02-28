@@ -9,6 +9,7 @@ from pyomo.environ import *
 from pyomo.opt import SolverFactory
 import matplotlib.pylab as plt
 from Rainflow import *
+import csv
 
 ########################################
 ########################################
@@ -20,9 +21,9 @@ from Rainflow import *
 
 
 # Create a solver
-
-opt= SolverFactory("ipopt", executable="C:/Users/guemruekcue/Anaconda3/pkgs/ipopt-3.11.1-2/Library/bin/ipopt")
-#opt= SolverFactory("bonmin", executable="C:/cygwin/home/bonmin/Bonmin-1.8.6/build/bin/bonmin")
+opt1=SolverFactory('glpk',executable="C:/Users/guemruekcue/Anaconda3/pkgs/glpk-4.63-vc14_0/Library/bin/glpsol")
+opt2= SolverFactory("ipopt", executable="C:/Users/guemruekcue/Anaconda3/pkgs/ipopt-3.11.1-2/Library/bin/ipopt")
+opt3= SolverFactory("bonmin", executable="C:/cygwin/home/bonmin/Bonmin-1.8.6/build/bin/bonmin")
 
 
 # A simple model with binary variables and
@@ -36,7 +37,7 @@ price=0.3
 timeInterval=1
 
 
-file = open("C:/Users/guemruekcue/internship/optimization-agent/profiles/load_profile_1.txt", 'r')
+file = open("C:/Users/guemruekcue/internship/optimization-agent/profiles/load_profile_10.txt", 'r')
 lines = file.read().splitlines()
 #lines=map(int, file.readlines())
 keys=range(len(lines))
@@ -96,7 +97,10 @@ print("Solving")
 print("#################################################")
 
 # Create a model model and optimize
-results=opt.solve(model)
+results1=opt1.solve(model)
+results2=opt2.solve(model)
+results3=opt3.solve(model)
+#%%
 
 print("#################################################")
 print("Plots")
@@ -158,7 +162,15 @@ plt.savefig('Results_2.png')
 
 plt.show()
   
-print(results)
+print("Glpk") 
+print(results1)
+print("##############")
+print("Ipopt")
+print(results2)
+print("##############")
+print("Bonmin")
+print(results3)
+print("##############")
 print()
 print("PV generation potential  :",sum(PV.values())*60/3600,"kWh")
 print("PV utilized potential    :",sum(y3[m]*PV[m] for m in model.answers)*60/3600,"kWh")
@@ -178,6 +190,4 @@ B=-1.483
 D_CL=sum(pair[1]/(A*pow(pair[0],B)) for pair in rf)
 
 print("Degradation of life-cycle:",D_CL)
-
-
 

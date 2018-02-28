@@ -15,11 +15,13 @@ opt= SolverFactory("bonmin", executable="C:/cygwin/home/bonmin/Bonmin-1.8.6/buil
 
 model = ConcreteModel()
 model.ind=RangeSet(1,2)
+model.socind=RangeSet(1,3)
 
 model.bat = Var(model.ind,bounds=(-5.0,5.0))
 model.ch = Var(model.ind)#,bounds=(0.0,5.0))
 model.dis = Var(model.ind)#,bounds=(0.0,5.0))
-model.eff = Var(model.ind)#,initialize=4)
+model.soc=Var(model.socind)
+
 
 x={}
 x[1]=[-5.0,0.0,5.0]
@@ -31,23 +33,14 @@ def y_ch(model,t,x):
         return 0.0
     else:
         return -x
-    
+   
 def y_dis(model,t,x):
     if x>=0:
         return x
     else:
         return 0.0
 
-"""    
-def y_eff(model,t,x):
-    if x>=0:
-        return 1.25
-    else:
-        return 0.8
-"""
-    
-def y_eff(model,t,x):
-    return abs(x)
+
 
 model.fx1 = Piecewise(model.ind,model.ch, model.bat,
                      pw_pts=x,
@@ -59,10 +52,13 @@ model.fx2 = Piecewise(model.ind,model.dis, model.bat,
                      pw_constr_type='EQ',
                      f_rule=y_dis)
 
-model.fx3 = Piecewise(model.ind,model.eff, model.bat,
-                     pw_pts=x,
-                     pw_constr_type='EQ',
-                     f_rule=y_eff)
+def con_rule2(model,m):
+    return model.soc[m+1]==model.soc[m]+0.8*model.ch[m]-1.25*model.dis[m]
+def con_rule3(model):
+    return model.soc[1]==5
+model.con2=Constraint(model.ind,rule=con_rule2)
+model.con3=Constraint(rule=con_rule3)
+
        
 
 model.o = Objective(expr=(model.bat[1]+0.25)*(model.bat[1]+0.25)+(model.bat[2]-1.25)*(model.bat[2]-1.25))
@@ -71,5 +67,5 @@ opt.solve(model)
 model.bat.pprint()
 model.ch.pprint()
 model.dis.pprint()
-model.eff.pprint()
+model.soc.pprint()
 
