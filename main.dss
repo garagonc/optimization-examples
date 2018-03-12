@@ -31,7 +31,8 @@ plot LoadShape object=Shape_10
 !Plot monitor object= m1 channels=(1 )
 Set voltagebases=[16 0.4]
 calcvoltagebases
-new monitor.m1 PVSystem.PV_Menapace 1 mode=1 ppolar=no
+new monitor.m1 Storage.AtPVNode 1 mode=1 ppolar=no
+new monitor.m2 PVSystem.PV_Menapace 1 mode=1 ppolar=no
 !calcv
 !solve
 !show voltages LN nodes
