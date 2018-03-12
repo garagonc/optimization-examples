@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import glob, os
 from functions import *
 from datetime import date, datetime, time, timedelta
+import numpy as np
 
 ##########################################################################
 ###########
@@ -107,43 +108,49 @@ optimizer=SolverFactory("ipopt", executable="C:/Users/guemruekcue/Anaconda3/pkgs
 timediscritization=60
 
 target=2
-batt,pv,result=optimizeSelfConsumptionL(dssText,ldsrc,pvsrc,prcsrc,optimizer,timediscritization,target)
-
+batt,pct,pf,pvpot,df=optimizeSelfConsumptionL(dssText,ldsrc,pvsrc,prcsrc,optimizer,timediscritization,target)
+SOCProfile2=[]
 #%%
 print("Simulation")
 num_steps=1440
+power_profile2=[]
+PVUtil2=[]
 for i in range(num_steps):
     
-    if i > 0:
-        LoadkW=getLoadskw(dssCircuit,dssLoads,dssCktElement)
-        current_value=getLoadkwNo(dssLoads,dssCktElement,54)
-        controlPPV(dssText,pv[i])
-        SoC_Battery=getStoredStorage(dssText)
-        PV_power=getPVPower(dssPVsystems,'PV_Menapace')
-        resStorage.append(controlOptimalStorage(dssText,SoC_Battery,PV_power, current_value,batt[i],pv[i]*PV_power))
-    
-    dssSolution.solve()
+    LoadkW=getLoadskw(dssCircuit,dssLoads,dssCktElement)
+    current_value=getLoadkwNo(dssLoads,dssCktElement,54)
+    controlPPV(dssText,pct[i]/10,pf[i])
+    SoC_Battery=getStoredStorage(dssText)
+    P_power,Q_power=getPVPower(dssPVsystems,'PV_Menapace')
+    resStorage.append(controlOptimalStorage(dssText,SoC_Battery,P_power, current_value,batt[i],pct[i]))
+    power_profile2.append([P_power,Q_power])
+
+    dssSolution.solve()    
     load_profile.append(LoadkW)
-    dssCircuit.SetActiveBus('121117')
+    #dssCircuit.SetActiveBus('121117')
+    dssCircuit.SetActiveBus('123775')
     puList = dssBus.puVmagAngle[0::2]
     voltages.append(puList)
     v21.append(puList[0])
     v22.append(puList[1])
     v23.append(puList[2])
+    
+    SOCProfile2.append(float(SoC_Battery))
+    PVUtil2.append(1.00 if pvpot[i]==0 else sqrt(P_power*P_power+Q_power*Q_power)/pvpot[i])
+    
     timestamp.append(the_time)
     the_time = the_time + timedelta(minutes=1)
 #%%
-saveArrayInExcel(load_profile,results_dir,"LoadProfile_PVutilOptimized")
-saveArrayInExcel(resStorage,results_dir,"StorageControl_PVutilOptimized")
+dssCircuit.Monitors.SaveAll()
+dssText.Command = "export monitors " + "m1"
+dssText.Command = "export monitors " + "m2"
+
+saveArrayInExcel(power_profile2,results_dir,"PVPower_PVUtilOptimized")
+saveArrayInExcel(load_profile,results_dir,"LoadProfile_PVUtilOptimized")
+saveArrayInExcel(resStorage,results_dir,"StorageControl_PVUtilOptimized")
 dssText.Command = 'CloseDI'
 
 print("Results are printed to PVutilOptimized files")
-
-SOCProfile2=[]
-PVUtil2=[]
-for ts in resStorage:
-    SOCProfile2.append(float(ts[1]))
-    PVUtil2.append(pv[resStorage.index(ts)]*100)
 
 
 

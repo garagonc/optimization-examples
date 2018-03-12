@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Feb 22 14:52:17 2018
+Created on Fri Mar  9 17:06:07 2018
 
 @author: guemruekcue
 """
+
 import random
 import win32com.client
 import pandas
@@ -31,7 +32,7 @@ dssLines = dssCircuit.Lines
 dssTransformers = dssCircuit.Transformers
 dssGenerators=dssCircuit.Generators
 dssPVsystems=dssCircuit.PVSystems
-
+#TODO: Add energy meters
 
 
 #%%
@@ -43,28 +44,6 @@ engine.ClearAll()
 dssText.Command = "compile " + filename
 print ("main.dss compiled")
 
-#%%
-#######################################################################
-##########Convert the profile to 15 minute resolution
-#######################################################################
-
-os.chdir(r'C:/Users/guemruekcue/internship/optimization-agent/profiles')
-file = 'residential.xlsx'
-xls = pandas.ExcelFile(file)
-df = xls.parse(xls.sheet_names[0])
-tri_ph_load_model = []
-for k in df['working days']:
-    for i in range(15):
-        tri_ph_load_model.append(k)
-df3 = pandas.DataFrame(tri_ph_load_model, columns=['Active Power three phase (balance load)'])
-
-profiles = []
-for file in glob.glob('*.txt'):
-    xls = profiles.append(file)
-rand_profile = profiles[1]
-df1 = pandas.read_csv(rand_profile, names=['Active Power phase R'])
-
-one_ph_load_model = df1['Active Power phase R']
 
 #%%
 #######################################################################
@@ -74,9 +53,9 @@ os.chdir(r'C:/Users/guemruekcue/internship/optimization-agent/dssInterface/tests
 script_dir = os.path.dirname(__file__)
 results_dir = os.path.join(os.path.dirname(__file__), 'results/')
 voltages=[]
-v31=[]
-v32=[]
-v33=[]
+v41=[]
+v42=[]
+v43=[]
 load_profile=[]
 timestamp=[]
 the_time =  datetime.combine(date.today(), time(0, 0))
@@ -106,14 +85,14 @@ prcsrc="C:/Users/guemruekcue/internship/optimization-agent/profiles/price_profli
 optimizer=SolverFactory("ipopt", executable="C:/Users/guemruekcue/Anaconda3/pkgs/ipopt-3.11.1-2/Library/bin/ipopt")
 timediscritization=60
 
-target=3
+target=4
 batt,pct,pf,pvpot,df=optimizeSelfConsumptionL(dssText,ldsrc,pvsrc,prcsrc,optimizer,timediscritization,target)
-SOCProfile3=[]
+SOCProfile4=[]
 #%%
 print("Simulation")
 num_steps=1440
-power_profile3=[]
-PVUtil3=[]
+power_profile4=[]
+PVUtil4=[]
 for i in range(num_steps):
     
     LoadkW=getLoadskw(dssCircuit,dssLoads,dssCktElement)
@@ -122,7 +101,7 @@ for i in range(num_steps):
     SoC_Battery=getStoredStorage(dssText)
     P_power,Q_power=getPVPower(dssPVsystems,'PV_Menapace')
     resStorage.append(controlOptimalStorage(dssText,SoC_Battery,P_power, current_value,batt[i],pct[i]))
-    power_profile3.append([P_power,Q_power])
+    power_profile4.append([P_power,Q_power])
 
     dssSolution.solve()    
     load_profile.append(LoadkW)
@@ -130,12 +109,12 @@ for i in range(num_steps):
     dssCircuit.SetActiveBus('123775')
     puList = dssBus.puVmagAngle[0::2]
     voltages.append(puList)
-    v31.append(puList[0])
-    v32.append(puList[1])
-    v33.append(puList[2])
+    v41.append(puList[0])
+    v42.append(puList[1])
+    v43.append(puList[2])
     
-    SOCProfile3.append(float(SoC_Battery))
-    PVUtil3.append(1.00 if pvpot[i]==0 else sqrt(P_power*P_power+Q_power*Q_power)/pvpot[i])
+    SOCProfile4.append(float(SoC_Battery))
+    PVUtil4.append(1.00 if pvpot[i]==0 else sqrt(P_power*P_power+Q_power*Q_power)/pvpot[i])
     
     timestamp.append(the_time)
     the_time = the_time + timedelta(minutes=1)
@@ -144,24 +123,20 @@ dssCircuit.Monitors.SaveAll()
 dssText.Command = "export monitors " + "m1"
 dssText.Command = "export monitors " + "m2"
 
-saveArrayInExcel(power_profile3,results_dir,"PVPower_EleBillOptimized")
-saveArrayInExcel(load_profile,results_dir,"LoadProfile_EleBillOptimized")
-saveArrayInExcel(resStorage,results_dir,"StorageControl_EleBillOptimized")
+saveArrayInExcel(power_profile4,results_dir,"PVPower_VoltageOptimized")
+saveArrayInExcel(load_profile,results_dir,"LoadProfile_VoltageOptimized")
+saveArrayInExcel(resStorage,results_dir,"StorageControl_VoltageOptimized")
 dssText.Command = 'CloseDI'
 
-
-print("Results are printed to EleBillOptimized file")
+print("Results are printed to GridExchangeOptimized files")
 
 """
-SOCProfile3=[]
-PVUtil3=[]
+SOCProfile1=[]
+PVUtil1=[]
 for ts in resStorage:
-    SOCProfile3.append(float(ts[1]))
-    PVUtil3.append(pv[resStorage.index(ts)]*100)
-"""   
-
-
-
+    SOCProfile1.append(float(ts[1]))
+    PVUtil1.append(floa)
+"""    
 
 
 

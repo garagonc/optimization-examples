@@ -7,7 +7,8 @@ Created on Fri Feb 23 11:47:42 2018
 
 from test_minGridExchange  import v11,v12,v13,SOCProfile1,PVUtil1
 from test_maxPVUtilization import v21,v22,v23,SOCProfile2,PVUtil2
-from test_minEleBill       import v31,v32,v33,SOCProfile3,PVUtil3,timestamp
+from test_minEleBill       import v31,v32,v33,SOCProfile3,PVUtil3
+from test_minVoltageDev    import v41,v42,v43,SOCProfile4,PVUtil4,timestamp
 
 import pandas
 import os
@@ -31,29 +32,31 @@ B=-1.483
 
 #Rainflow counting: a list of tuples that contain load ranges and the corresponding number of cycles
 rf1=count_cycles(SOCProfile1)
-rf2=count_cycles(SOCProfile1)
-rf3=count_cycles(SOCProfile1)
+rf2=count_cycles(SOCProfile2)
+rf3=count_cycles(SOCProfile3)
+rf4=count_cycles(SOCProfile4)
 
 #Degradation of life-cycle
 D_CL1=sum(pair[1]/(A*pow(pair[0],B)) for pair in rf1)
-D_CL2=sum(pair[1]/(A*pow(pair[0],B)) for pair in rf1)
-D_CL3=sum(pair[1]/(A*pow(pair[0],B)) for pair in rf1)
+D_CL2=sum(pair[1]/(A*pow(pair[0],B)) for pair in rf2)
+D_CL3=sum(pair[1]/(A*pow(pair[0],B)) for pair in rf3)
+D_CL4=sum(pair[1]/(A*pow(pair[0],B)) for pair in rf4)
 
 #PV Utilization
-df_PV=pandas.DataFrame(list(zip(timestamp, PVUtil1, PVUtil2,PVUtil3)),
-                        columns=['time','Model1','Model2','Model3'])
+df_PV=pandas.DataFrame(list(zip(timestamp, PVUtil1, PVUtil2,PVUtil3,PVUtil4)),
+                        columns=['time','Model1','Model2','Model3','Model4'])
 
 #SOC
-df_SOC=pandas.DataFrame(list(zip(timestamp, SOCProfile1, SOCProfile2,SOCProfile3)),
-                        columns=['time','Model1','Model2','Model3'])
+df_SOC=pandas.DataFrame(list(zip(timestamp, SOCProfile1, SOCProfile2,SOCProfile3,SOCProfile4)),
+                        columns=['time','Model1','Model2','Model3','Model4'])
 
 #Phase voltage vectors
-df_v1 = pandas.DataFrame(list(zip(timestamp, v11, v21,v31)), columns=['time','Model1','Model2','Model3'])
-df_v2 = pandas.DataFrame(list(zip(timestamp, v11, v21,v31)), columns=['time','Model1','Model2','Model3'])
-df_v3 = pandas.DataFrame(list(zip(timestamp, v11, v21,v31)), columns=['time','Model1','Model2','Model3'])
+df_v1 = pandas.DataFrame(list(zip(timestamp, v11, v21,v31,v41)), columns=['time','Model1','Model2','Model3','Model4'])
+df_v2 = pandas.DataFrame(list(zip(timestamp, v12, v22,v32,v42)), columns=['time','Model1','Model2','Model3','Model4'])
+df_v3 = pandas.DataFrame(list(zip(timestamp, v13, v23,v33,v43)), columns=['time','Model1','Model2','Model3','Model4'])
 
 #%%
-styles = ['r','g','b']
+styles = ['r','g','b','m']
 #ax1: Grid Exchange
 #ax2: PVutilization
 #ax3: Bill
@@ -64,9 +67,9 @@ styles = ['r','g','b']
 #TODO: Measure the electricity bill paid by PVNode and compare it in ax3
 
 fig, (ax2,ax4,ax5) = plt.subplots(3, 1, sharex=True)
-df_PV.plot(x='time',y=['Model1','Model2','Model3'],rot=90, style=styles, ax=ax2, legend=True)
-df_SOC.plot(x='time',y=['Model1','Model2','Model3'],rot=90, style=styles, ax=ax4, legend=False)
-df_v1.plot(x='time',y=['Model1','Model2','Model3'],rot=90, style=styles, ax=ax5, legend=False)
+df_PV.plot(x='time',y=['Model1','Model2','Model3','Model4'],rot=90, style=styles, ax=ax2, legend=True)
+df_SOC.plot(x='time',y=['Model1','Model2','Model3','Model4'],rot=90, style=styles, ax=ax4, legend=False)
+df_v1.plot(x='time',y=['Model1','Model2','Model3','Model4'],rot=90, style=styles, ax=ax5, legend=False)
 
 ax2.set_title('Pv Utilization', rotation='vertical',loc='right')
 ax4.set_title('SOC', rotation='vertical',loc='right')

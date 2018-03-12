@@ -86,55 +86,50 @@ optimizer=SolverFactory("ipopt", executable="C:/Users/guemruekcue/Anaconda3/pkgs
 timediscritization=60
 
 target=1
-batt,pv,result=optimizeSelfConsumptionL(dssText,ldsrc,pvsrc,prcsrc,optimizer,timediscritization,target)
-flow_profile=[]
+batt,pct,pf,pvpot,df=optimizeSelfConsumptionL(dssText,ldsrc,pvsrc,prcsrc,optimizer,timediscritization,target)
+SOCProfile1=[]
 #%%
 print("Simulation")
 num_steps=1440
-flow=[]
+power_profile1=[]
+PVUtil1=[]
 for i in range(num_steps):
     
-    if i > 0:
-        LoadkW=getLoadskw(dssCircuit,dssLoads,dssCktElement)
-        current_value=getLoadkwNo(dssLoads,dssCktElement,54)
-        flow=getPowerIntoNo(dssLoads,dssCktElement,54) #
-        controlPPV(dssText,pv[i])
-        SoC_Battery=getStoredStorage(dssText)
-        PV_power=getPVPower(dssPVsystems,'PV_Menapace')
-        resStorage.append(controlOptimalStorage(dssText,SoC_Battery,PV_power, current_value,batt[i],pv[i]*PV_power))
-    
-    """
-    if i==964:
-        dssText.Command= 'show Powers EXP_POWERS1'
-        dssText.Command= 'show Powers PVSystem.PV_MENAPACE'
-        dssText.Command= 'show Variables'        
-    """
+    LoadkW=getLoadskw(dssCircuit,dssLoads,dssCktElement)
+    current_value=getLoadkwNo(dssLoads,dssCktElement,54)
+    controlPPV(dssText,pct[i]/10,pf[i])
+    SoC_Battery=getStoredStorage(dssText)
+    P_power,Q_power=getPVPower(dssPVsystems,'PV_Menapace')
+    resStorage.append(controlOptimalStorage(dssText,SoC_Battery,P_power, current_value,batt[i],pct[i]))
+    power_profile1.append([P_power,Q_power])
 
-    dssSolution.solve()
+    dssSolution.solve()    
     load_profile.append(LoadkW)
-    flow_profile.append([flow]) #
-    dssCircuit.SetActiveBus('121117')
+    #dssCircuit.SetActiveBus('121117')
+    dssCircuit.SetActiveBus('123775')
     puList = dssBus.puVmagAngle[0::2]
     voltages.append(puList)
     v11.append(puList[0])
     v12.append(puList[1])
     v13.append(puList[2])
+    
+    SOCProfile1.append(float(SoC_Battery))
+    PVUtil1.append(1.00 if pvpot[i]==0 else sqrt(P_power*P_power+Q_power*Q_power)/pvpot[i])
+    
     timestamp.append(the_time)
     the_time = the_time + timedelta(minutes=1)
 #%%
-saveArrayInExcel(flow_profile,results_dir,"PFlowInto_GridExchangeOptimized")
+dssCircuit.Monitors.SaveAll()
+dssText.Command = "export monitors " + "m1"
+dssText.Command = "export monitors " + "m2"
+
+saveArrayInExcel(power_profile1,results_dir,"PVPower_GridExchangeOptimized")
 saveArrayInExcel(load_profile,results_dir,"LoadProfile_GridExchangeOptimized")
 saveArrayInExcel(resStorage,results_dir,"StorageControl_GridExchangeOptimized")
 dssText.Command = 'CloseDI'
 
 print("Results are printed to GridExchangeOptimized files")
 
-SOCProfile1=[]
-PVUtil1=[]
-for ts in resStorage:
-    SOCProfile1.append(float(ts[1]))
-    PVUtil1.append(pv[resStorage.index(ts)]*100)
-    
 
 
 
