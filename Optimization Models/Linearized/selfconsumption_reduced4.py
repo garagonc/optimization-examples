@@ -54,7 +54,7 @@ if len(linesLoad)==len(linesPV):
     N=len(linesLoad)
     for i in keys:
         Pdem.append(float(linesLoad[i]))
-        Qdem.append(0.0)
+        Qdem.append(float(linesLoad[i])*0.312)
         PV.append(float(linesPV[i]))
 
 price=[];
