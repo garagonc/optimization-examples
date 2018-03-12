@@ -10,7 +10,14 @@ from datetime import date, datetime, time, timedelta
 from pyomo.environ import *
 from pyomo.core import *
 from pyomo.opt import SolverFactory
+import numpy as np
 
+def makelist(sortedlist):
+    x, y = zip(*sortedlist)
+    output=[]
+    for value in y:
+        output.append(value.value)
+    return output
 
 def thresholdPowerStorage(dssText,dss_circuit_load,charge=0.4,discharge=0.8):
     char_var=charge
@@ -89,8 +96,9 @@ def getTime(dssCircuit):
 
 def getPVPower(dssPVsystems,PV_name):
     dssPVsystems.Name=PV_name
-    PV_power=dssPVsystems.kw
-    return PV_power
+    P_power=dssPVsystems.kw
+    Q_power=dssPVsystems.kvar
+    return P_power,Q_power
 
 def getStoredStorage(dssText):
     dssText.Command = '? Storage.AtPVNode.%stored'
@@ -191,10 +199,9 @@ def controlOptimalStorage(dssText,SoC_Battery,PV_power, dss_circuit_load,battery
         chargepower= dssText.Result;   
         return (kwTarget_storage,stored_storage,PV_power,dss_circuit_load,batteryOutput,utilPV)
 
-
-def controlPPV(dssText,modulation):
+def controlPPV(dssText,modulation,powerfactor):
     dssText.Command ='PVSystem.PV_Menapace.pctPmpp ='+str(modulation*100)
-    
+    dssText.Command ='PVSystem.PV_Menapace.kvar =' +str(powerfactor)
     
 def optimizeSelfConsumptionL(dssText,loadForecast,pvForecast,priceForecast,solver,timediscretization,target=1,socMin=0.20,socMax=0.95):
     
@@ -211,12 +218,14 @@ def optimizeSelfConsumptionL(dssText,loadForecast,pvForecast,priceForecast,solve
     
     if len(linesLoad)==len(linesPV):
         keys=range(len(linesPV))
-        Pdem = {}
-        PV = {}
+        Pdem = []
+        Qdem = []
+        PV = []
         N=len(linesLoad)
         for i in keys:
-            Pdem[keys[i]]=float(linesLoad[i])
-            PV[keys[i]]=float(linesPV[i])
+            Pdem.append(float(linesLoad[i]))
+            Qdem.append(float(linesLoad[i])*0.312)  #PF=0.95
+            PV.append(float(linesPV[i]))
                       
     price=[]
     for row in linesPrice:
@@ -235,14 +244,26 @@ def optimizeSelfConsumptionL(dssText,loadForecast,pvForecast,priceForecast,solve
     storageRatedkW=float(powstr)
     dT=timediscretization
     N=1440                              #TODO: Choose via function argument
+    
+    R=0.67                              #TODO: Choose by pointing the circuit
+    X=0.282
+    VGEN=0.4
        
     model = ConcreteModel()
     model.lengthSoC=RangeSet(0,N)
     model.horizon=RangeSet(0,N-1)
-    model.PBAT= Var(model.horizon,bounds=(-storageRatedkW,storageRatedkW),initialize=0)    
-    model.PGRID=Var(model.horizon,initialize=0)                      
+ 
+    model.PBAT= Var(model.horizon,bounds=(-storageRatedkW,storageRatedkW),initialize=0)
+    
+    model.PGRID=Var(model.horizon,bounds=(-10.0,10.0),initialize=0)
+    model.QGRID=Var(model.horizon,bounds=(-10.0,10.0),initialize=0)
+    
+    model.Ppv=Var(model.horizon,initialize=0)
+    model.Qpv=Var(model.horizon,initialize=0)
+    
+                         
     model.SoC=Var(model.lengthSoC,bounds=(socMin,socMax))
-    model.PVmod=Var(model.horizon,bounds=(0,1),initialize=1)
+    model.dV=Var(model.horizon)#,bounds=(-0.2,0.2))
     
     ###########################################################################
     #######                         OBJECTIVE                           #######
@@ -251,44 +272,67 @@ def optimizeSelfConsumptionL(dssText,loadForecast,pvForecast,priceForecast,solve
         if target==1:   #Minimum exchange with grid    
             return sum(model.PGRID[m]*model.PGRID[m] for m in model.horizon)
         elif target==2: #Maximum utilization of PV potential
-            return sum((1-model.PVmod[m])*PV[m] for m in model.horizon)
+            return sum(PV[m]-model.Ppv[m] for m in model.horizon)
         elif target==3: #Minimum electricity bill
-            return sum(price[m]*model.PGRID[m] for m in model.horizon)            
+            return sum(price[m]*model.PGRID[m] for m in model.horizon)
+        elif target==4: #Minimum voltage drop
+            return sum(model.dV[m]*model.dV[m] for m in model.horizon)           
     model.obj=Objective(rule=obj_rule, sense = minimize)
         
     ###########################################################################
     #######                         CONSTRAINTS                         #######
-    #######                Rule1: Power demand meeting                  #######
-    #######                Rule2: State of charge consistency           #######
-    #######                Rule3: Initial State of charge               #######
+    #######                Rule1: P_power demand meeting                #######
+    #######                Rule2: Q_power demand meeting                #######
+    #######                Rule3: State of charge consistency           #######
+    #######                Rule4: Initial State of charge               #######
+    #######                Rule5: ppv+j.qpv <= PB                       #######  
+    #######                Rule6: Voltage drop                          #######
     ###########################################################################
     def con_rule1(model,m):
-        return Pdem[m]==model.PVmod[m]*PV[m] + model.PBAT[m] + model.PGRID[m] 
+        return Pdem[m]==model.Ppv[m]+ model.PGRID[m] + model.PBAT[m]  
     def con_rule2(model,m):
+        return Qdem[m]==model.Qpv[m]+ model.QGRID[m] 
+    def con_rule3(model,m):
         return model.SoC[m+1]==model.SoC[m] - model.PBAT[m]*dT/storageCapacity 
-    def con_rule3(model):
+    def con_rule4(model):
         return model.SoC[0]==initialSOC
+    def con_rule5(model,m):
+        return model.Ppv[m]*model.Ppv[m]+model.Qpv[m]*model.Qpv[m] <= PV[m]*PV[m]
+    def con_rule6(model,m):
+        return model.dV[m]==(R*model.PGRID[m]+X*model.QGRID[m])/VGEN
     
     model.con1=Constraint(model.horizon,rule=con_rule1)
     model.con2=Constraint(model.horizon,rule=con_rule2)
-    model.con3=Constraint(rule=con_rule3)
-
+    model.con3=Constraint(model.horizon,rule=con_rule3)
+    model.con4=Constraint(rule=con_rule4)
+    model.con5=Constraint(model.horizon,rule=con_rule5)
+    model.con6=Constraint(model.horizon,rule=con_rule6)
+    
     ###########################################################################
     #######                         SOLVING                             #######
     ###########################################################################
     result=solver.solve(model)
     print(result)
     
-    listsPStorageP = sorted(model.PBAT.items())
-    x, y = zip(*listsPStorageP)
-    PStorage=[]
-    for value in y:
-        PStorage.append(value.value)
-        
-    listsPVUtil = sorted(model.PVmod.items())
-    x, y = zip(*listsPVUtil)
-    PVUtil=[]
-    for value in y:
-        PVUtil.append(value.value)    
-
-    return PStorage,PVUtil,model    
+    listPpv=sorted(model.Ppv.items()) 
+    listQpv=sorted(model.Qpv.items()) 
+    listsPStorageP = sorted(model.PBAT.items()) 
+    listsSOC= sorted(model.SoC.items()) 
+    listsPImport = sorted(model.PGRID.items())
+    listsQImport = sorted(model.QGRID.items())  
+    listsdV= sorted(model.dV.items())
+    
+    ppv=makelist(listPpv)
+    qpv=makelist(listQpv)
+    Pbat=makelist(listsPStorageP)
+    soc=makelist(listsSOC)
+    Pimp=makelist(listsPImport)
+    Qimp=makelist(listsQImport)
+    vdrop=makelist(listsdV)
+    
+    x=range(len(linesPV))
+    pf=[0 if ppv[m]==0 else np.cos(np.arctan(qpv[m]/ppv[m])) for m in x]
+    
+    dataframe=pandas.DataFrame(data={'SOC':soc[0:len(x)],'dV':vdrop,'importP':Pimp,'importQ':Qimp,'dem':Pdem,'PVpot':PV,'PVp':ppv,'PVq':qpv})
+    
+    return Pbat,ppv,pf,PV,dataframe    
