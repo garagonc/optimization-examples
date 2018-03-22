@@ -1,0 +1,30 @@
+# above mean scenario
+
+set PlantType := 1 2 3 4;
+set OpMode    := 1 2 3;
+
+param C_inst := 1 10.0
+                2 7.0
+                3 16.0
+                4 6.0;
+                
+param Q_op :=   1 1 40.0
+                1 2 24.0
+                1 3 4.0
+                2 1 45.0
+                2 2 27.0
+                2 3 4.5
+                3 1 32.0
+                3 2 19.2
+                3 3 3.2
+                4 1 55.0
+                4 2 33.0
+                4 3 5.5;
+
+param MinTotCap := 12.0;
+param Budget := 120.0;
+
+param Demand := 1 5.0
+                2 3.2
+                3 2.0;
+
