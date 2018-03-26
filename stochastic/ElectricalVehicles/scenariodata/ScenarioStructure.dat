@@ -1,38 +1,68 @@
 set Stages := FirstStage SecondStage ;
 
 set Nodes := RootNode 
-             LowDemLowGenNode
-             LowDemHighGenNode
-             HighDemHighGenNode
-             HighDemLowGenNode ;
+             EarlyLowNode
+             EarlyMedNode
+             EarlyHighNode
+             NormalLowNode
+			 NormalMedNode
+			 NormalHighNode
+			 LateLowNode
+			 LateMedNode
+			 LateHighNode;
 
 param NodeStage := RootNode         FirstStage 
-                   LowDemLowGenNode SecondStage
-                   LowDemHighGenNode SecondStage
-                   HighDemLowGenNode SecondStage
-                   HighDemHighGenNode SecondStage ;
+				   EarlyLowNode		SecondStage
+				   EarlyMedNode		SecondStage
+				   EarlyHighNode	SecondStage
+				   NormalLowNode	SecondStage
+				   NormalMedNode	SecondStage
+				   NormalHighNode	SecondStage
+				   LateLowNode		SecondStage
+				   LateMedNode		SecondStage
+				   LateHighNode		SecondStage;
 
-set Children[RootNode] := LowDemLowGenNode
-                          LowDemHighGenNode
-                          HighDemLowGenNode 
-                          HighDemHighGenNode ;
+set Children[RootNode] :=   EarlyLowNode
+							EarlyMedNode
+							EarlyHighNode
+							NormalLowNode
+							NormalMedNode
+							NormalHighNode
+							LateLowNode
+							LateMedNode
+							LateHighNode;
 
-param ConditionalProbability := RootNode           1.0
-                                LowDemLowGenNode   0.25
-                                LowDemHighGenNode  0.25
-                                HighDemLowGenNode  0.25
-                                HighDemHighGenNode 0.25 ;
+param ConditionalProbability := RootNode       	1.0
+								EarlyLowNode	0.068834105010793234
+								EarlyMedNode	0.21870694023636172
+								EarlyHighNode	0.20539854162944923
+								NormalLowNode	0.060702593578646276
+								NormalMedNode	0.1928706489888326
+								NormalHighNode	0.18113439830770067
+								LateLowNode		0.01010334421366413
+								LateMedNode		0.032101405237690735
+								LateHighNode	0.030148022796861421;
 
-set Scenarios := LowDemLowGenScenario
-                 LowDemHighGenScenario
-                 HighDemLowGenScenario 
-                 HighDemHighGenScenario ;
+set Scenarios := EarlyLowScenario
+                 EarlyMedScenario
+                 EarlyHighScenario
+                 NormalLowScenario
+        			 NormalMedScenario
+        			 NormalHighScenario
+        			 LateLowScenario
+        			 LateMedScenario
+        			 LateHighScenario;
 
 param ScenarioLeafNode := 
-                    LowDemLowGenScenario  LowDemLowGenNode
-                    LowDemHighGenScenario LowDemHighGenNode
-                    HighDemLowGenScenario HighDemLowGenNode
-                    HighDemHighGenScenario HighDemHighGenNode ;
+                        EarlyLowScenario 	EarlyLowNode
+                        EarlyMedScenario 	EarlyMedNode
+                        EarlyHighScenario 	EarlyHighNode
+                        NormalLowScenario 	NormalLowNode
+            			     NormalMedScenario 	NormalMedNode
+                	  	  NormalHighScenario 	NormalHighNode
+        					  LateLowScenario 	   LateLowNode
+        					  LateMedScenario 	   LateMedNode
+        					  LateHighScenario 	LateHighNode;
 
 set StageVariables[FirstStage] :=  PBAT[*]
                                    PGRID[*]
