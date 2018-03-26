@@ -96,7 +96,7 @@ pvRate1=sum(PV1[m]*PV[m] for m in timestamp)*dT/3600
 pvRate2=sum(PV2[m]*PV[m] for m in timestamp)*dT/3600
 pvRate3=sum(PV3[m]*PV[m] for m in timestamp)*dT/3600
 
-bill1=sum(-sw_ex1[m]*ex1[m]*priceExp[m]+sw_im1[m]*im3[m]*priceImp[m] for m in timestamp)*dT/3600/1000
+bill1=sum(-sw_ex1[m]*ex1[m]*priceExp[m]+sw_im1[m]*im1[m]*priceImp[m] for m in timestamp)*dT/3600/1000
 bill2=sum(-sw_ex2[m]*ex2[m]*priceExp[m]+sw_im2[m]*im2[m]*priceImp[m] for m in timestamp)*dT/3600/1000
 bill3=sum(-sw_ex3[m]*ex3[m]*priceExp[m]+sw_im3[m]*im3[m]*priceImp[m] for m in timestamp)*dT/3600/1000
 

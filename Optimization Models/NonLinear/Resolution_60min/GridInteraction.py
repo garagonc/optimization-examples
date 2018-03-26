@@ -16,9 +16,9 @@ model = ConcreteModel()
 model.horizon=RangeSet(0,N-1)
 model.lengthSoC=RangeSet(0,N)
 
-model.PBAT= Var(model.horizon,bounds=(-5.6,5.6),initialize=0)      
-model.PGRID_EXP= Var(model.horizon,bounds=(0,5.6),initialize=0)    
-model.PGRID_IMP=Var(model.horizon, bounds=(0,5.6),initialize=0)    
+model.PBAT= Var(model.horizon,bounds=(-6.4,6.4),initialize=0)      
+model.PGRID_EXP= Var(model.horizon,bounds=(0,7.8),initialize=0)    
+model.PGRID_IMP=Var(model.horizon, bounds=(0,7.8),initialize=0)    
 
 model.g1exp=Var(model.horizon,within=Binary)
 model.g2imp=Var(model.horizon,within=Binary)

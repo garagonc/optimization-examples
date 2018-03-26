@@ -15,9 +15,9 @@ model = ConcreteModel()
 model.horizon=RangeSet(0,N-1)
 model.lengthSoC=RangeSet(0,N)
 
-model.PBAT= Var(model.horizon,bounds=(-5.6,5.6),initialize=0)      
-model.PGRID_EXP= Var(model.horizon,bounds=(0,5.6),initialize=0)    
-model.PGRID_IMP=Var(model.horizon, bounds=(0,5.6),initialize=0)    
+model.PBAT= Var(model.horizon,bounds=(-6.4,6.4),initialize=0)      
+model.PGRID_EXP= Var(model.horizon,bounds=(0,7.8),initialize=0)    
+model.PGRID_IMP=Var(model.horizon, bounds=(0,7.8),initialize=0)    
 
 model.g1exp=Var(model.horizon,within=Binary)
 model.g2imp=Var(model.horizon,within=Binary)
@@ -25,6 +25,7 @@ model.g2imp=Var(model.horizon,within=Binary)
 model.SoC=Var(model.lengthSoC,bounds=(0.20,0.95))
 model.PVmod=Var(model.horizon,bounds=(0,1),initialize=1)
 
+#model.bill=Var(model.horizon)
 
 #%%
 #Objective
@@ -35,6 +36,8 @@ def obj_rule2(model):   #Maximum PV utilization
     return sum((1-model.PVmod[m])*PV[m] for m in model.horizon)
 def obj_rule3(model):   #Minimum power bill
     return sum(-model.g1exp[m]*model.PGRID_EXP[m]*priceExp[m]+ model.g2imp[m]*model.PGRID_IMP[m]*priceImp[m] for m in model.horizon)
+def obj_rule4(model):   #Minimum power bill
+    return sum(model.bill[m] for m in model.horizon)
 model.obj=Objective(rule=obj_rule3)
 
 #%%
@@ -56,6 +59,10 @@ model.con5=Constraint(model.horizon,rule=con_rule5)
 def con_rule6(model):
     return model.SoC[0]==0.35
 model.con6=Constraint(rule=con_rule6)
+
+def con_rule7(model,m):
+    return model.bill[m]==model.g2imp[m]*model.PGRID_IMP[m]*priceImp[m]-model.g1exp[m]*model.PGRID_EXP[m]*priceExp[m]
+#model.con7=Constraint(model.horizon,rule=con_rule7)
 
 #%%
 #Solution

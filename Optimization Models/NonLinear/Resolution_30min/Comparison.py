@@ -96,7 +96,7 @@ pvRate1=sum(PV1[m]*PV[m] for m in timestamp)*dT/3600
 pvRate2=sum(PV2[m]*PV[m] for m in timestamp)*dT/3600
 pvRate3=sum(PV3[m]*PV[m] for m in timestamp)*dT/3600
 
-bill1=sum(-sw_ex1[m]*ex1[m]*priceExp[m]+sw_im1[m]*im3[m]*priceImp[m] for m in timestamp)*dT/3600/1000
+bill1=sum(-sw_ex1[m]*ex1[m]*priceExp[m]+sw_im1[m]*im1[m]*priceImp[m] for m in timestamp)*dT/3600/1000
 bill2=sum(-sw_ex2[m]*ex2[m]*priceExp[m]+sw_im2[m]*im2[m]*priceImp[m] for m in timestamp)*dT/3600/1000
 bill3=sum(-sw_ex3[m]*ex3[m]*priceExp[m]+sw_im3[m]*im3[m]*priceImp[m] for m in timestamp)*dT/3600/1000
 
@@ -128,4 +128,7 @@ print("-------------------------:--------------:---------------:------------:---
 print("Model1                   :   %3f   :   %3f   :   %6.2f   :   %3f   :" % (import1,-export1,pvRate1/pvPot*100,bill1))
 print("Model2                   :   %3f   :   %3f   :   %6.2f   :   %3f   :" % (import2,-export2,pvRate2/pvPot*100,bill2))
 print("Model3                   :   %3f   :   %3f   :   %6.2f   :   %3f   :" % (import3,-export3,pvRate3/pvPot*100,bill3))
-
+print()
+print("Degradation 1:",D_CL1*365*100)
+print("Degradation 2:",D_CL2*365*100)
+print("Degradation 3:",D_CL3*365*100)

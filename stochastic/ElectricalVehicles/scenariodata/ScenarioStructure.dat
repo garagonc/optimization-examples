@@ -1,0 +1,43 @@
+set Stages := FirstStage SecondStage ;
+
+set Nodes := RootNode 
+             LowDemLowGenNode
+             LowDemHighGenNode
+             HighDemHighGenNode
+             HighDemLowGenNode ;
+
+param NodeStage := RootNode         FirstStage 
+                   LowDemLowGenNode SecondStage
+                   LowDemHighGenNode SecondStage
+                   HighDemLowGenNode SecondStage
+                   HighDemHighGenNode SecondStage ;
+
+set Children[RootNode] := LowDemLowGenNode
+                          LowDemHighGenNode
+                          HighDemLowGenNode 
+                          HighDemHighGenNode ;
+
+param ConditionalProbability := RootNode           1.0
+                                LowDemLowGenNode   0.25
+                                LowDemHighGenNode  0.25
+                                HighDemLowGenNode  0.25
+                                HighDemHighGenNode 0.25 ;
+
+set Scenarios := LowDemLowGenScenario
+                 LowDemHighGenScenario
+                 HighDemLowGenScenario 
+                 HighDemHighGenScenario ;
+
+param ScenarioLeafNode := 
+                    LowDemLowGenScenario  LowDemLowGenNode
+                    LowDemHighGenScenario LowDemHighGenNode
+                    HighDemLowGenScenario HighDemLowGenNode
+                    HighDemHighGenScenario HighDemHighGenNode ;
+
+set StageVariables[FirstStage] :=  PBAT[*]
+                                   PGRID[*]
+                                   pPV[*]
+                                   SoC[*];
+
+param StageCost := FirstStage  FirstStageCost
+                   SecondStage SecondStageCost ;

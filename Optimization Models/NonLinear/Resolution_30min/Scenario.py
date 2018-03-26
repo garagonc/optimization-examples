@@ -31,7 +31,7 @@ for i in keys:
     pdem.append(float(lines[i]))
 Pdem=[]
 for ts in range(N):
-    Pdem.append(sum(pdem[ts*dT_min:(ts+1)*dT_min])/dT_min)      #Takes the average of the range
+    Pdem.append(sum(pdem[ts*dT_min:(ts+1)*dT_min])/dT_min*3)      #Takes the average of the range
     
 filePV = open("C:/Users/guemruekcue/internship/optimization-agent/profiles/PV_profile3.txt", 'r')
 linesPV = filePV.read().splitlines()

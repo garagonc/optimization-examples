@@ -11,7 +11,7 @@ import pandas as pd
 
 np.random.seed(0)
 
-mu_soc, sigma_soc = 3.78, 0.58209       # mean and standard deviation for SOC at arrivaö
+mu_soc, sigma_soc = 3.78, 0.58209**2    # mean and standard deviation for SOC at arrivaö
 mu_arr, sigma_arr = 969.8916, 234.9789  # mean and standard deviation for arrival time
 
 S=20            #Number of samples
@@ -27,6 +27,7 @@ for s in range(S):
         series_soc[s]=drawn_soc
     else:
         series_soc[s]=np.random.uniform(20.0,90.0)
+        print('Wrong generation')
 
 #Case list
 """
