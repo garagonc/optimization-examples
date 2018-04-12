@@ -7,7 +7,6 @@ Created on Thu Apr 12 09:44:18 2018
 
 from MinimizeGridExchange import MinimizeGridExchange
 from pyomo.environ import SolverFactory
-import os
 
 """
 Example:
@@ -135,18 +134,20 @@ dictlist=[loadInput,pvInput,essInput,marketInput]
 #Building the abstract model with SOC and forecast data
 optimizationmodel2=MinimizeGridExchange(dictlist)
 
+if __name__=="__main__":
+    import os
 
-#The file with fixed parameters such as battery capacity, inverter rate etc.
-project_dir=os.path.dirname(__file__)
-data_file_2=project_dir+'/data_fixedParametersInFile.dat'
-
-
-#Constructing an instance of optimzation model
-instance2 = optimizationmodel2.abstractmodel.create_instance(data_file_2)
+    #The file with fixed parameters such as battery capacity, inverter rate etc.
+    project_dir=os.path.dirname(__file__)
+    data_file_2=project_dir+'/data_fixedParametersInFile.dat'
     
-#Solving the optimization problem
-opt=SolverFactory("ipopt")
-results2=opt.solve(instance2)
-
-#Printing the results
-print(results2)
+    
+    #Constructing an instance of optimzation model
+    instance2 = optimizationmodel2.abstractmodel.create_instance(data_file_2)
+        
+    #Solving the optimization problem
+    opt=SolverFactory("ipopt")
+    results2=opt.solve(instance2)
+    
+    #Printing the results
+    print(results2)

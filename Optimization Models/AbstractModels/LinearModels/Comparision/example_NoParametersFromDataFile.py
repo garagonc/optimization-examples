@@ -7,7 +7,6 @@ Created on Thu Apr 12 09:48:04 2018
 
 from MinimizeGridExchange import MinimizeGridExchange
 from pyomo.environ import SolverFactory
-import os
 
 """
 Example:
@@ -153,14 +152,15 @@ dictlist=[timeInput,loadInput,pvInput,essInput,gridInput,marketInput]
 #Building the abstract model with all parameter data
 optimizationmodel3=MinimizeGridExchange(dictlist,True)
 
-#No data file is required to set the parameters
-
-#Constructing an instance of optimzation model
-instance3 = optimizationmodel3.abstractmodel.create_instance()
+if __name__=="__main__":
+    #No data file is required to set the parameters
     
-#Solving the optimization problem
-opt=SolverFactory("ipopt")
-results3=opt.solve(instance3)
-
-#Printing the results
-print(results3)
+    #Constructing an instance of optimzation model
+    instance3 = optimizationmodel3.abstractmodel.create_instance()
+        
+    #Solving the optimization problem
+    opt=SolverFactory("ipopt")
+    results3=opt.solve(instance3)
+    
+    #Printing the results
+    print(results3)
