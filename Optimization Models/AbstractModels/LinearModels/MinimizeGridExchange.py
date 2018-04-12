@@ -19,7 +19,13 @@ class MinimizeGridExchange():
         if parameterdictlist==None:
             self.abstractmodel=self.build_abstract_model_withoutParameters()
         else:
-            self.abstractmodel=self.build_abstract_model_withParameters()
+            timeInput=parameterdictlist[0]
+            loadInput=parameterdictlist[1]
+            pvInput=parameterdictlist[2]
+            essInput=parameterdictlist[3]
+            gridInput=parameterdictlist[4]
+            marketInput=parameterdictlist[5]
+            self.abstractmodel=self.build_abstract_model_withParameters(timeInput,loadInput,pvInput,essInput,gridInput,marketInput)
        
     def build_abstract_model_withoutParameters(self):
         model = AbstractModel()
@@ -121,7 +127,7 @@ class MinimizeGridExchange():
         
         return model        
         
-    """
+    
     def build_abstract_model_withParameters(self,timeInput,loadInput,pvInput,essInput,gridInput,marketInput):
         
         Time_dT=timeInput['dT']
@@ -138,7 +144,7 @@ class MinimizeGridExchange():
         ESS_MaxDis={}
         ESS_ChEff={}
         ESS_DisEff={}
-        for key in essInput.keys()
+        for key in essInput.keys():
             ESS_MinSoC[key]=essInput[key]['minSoC']
             ESS_MaxSoC[key]=essInput[key]['maxSoC']
             ESS_IniSoC[key]=essInput[key]['iniSoC']
@@ -158,36 +164,37 @@ class MinimizeGridExchange():
         model = AbstractModel()        
         
         
-        model.dT=Param(within=PositiveIntegers,initalize=Time_dT)                            #Number of seconds in one time step
+        model.dT=Param(initialize=Time_dT)                            #Number of seconds in one time step
         model.T=Set(initialize=set(range(0,Time_horizon)))                                   #Number of time steps in optimization horizon
         model.T_SoC=Set(initialize=set(range(0,Time_horizon+1)))                             #SoC of the ESSs at the end of optimization horizon are also taken into account
+        model.N=Set(initialize=essInput.keys())
         
         ##################################       PARAMETERS            #################################
         
-        model.P_Load_Forecast=Param(model.T,within=NonNegativeReals,initalize=Load_PForecast)#Active power demand forecast
-        model.Q_Load_Forecast=Param(model.T,within=Reals,initalize=Load_QForecast)           #Reactive demand forecast
+        model.P_Load_Forecast=Param(model.T,within=NonNegativeReals,initialize=Load_PForecast)#Active power demand forecast
+        model.Q_Load_Forecast=Param(model.T,within=Reals,initialize=Load_QForecast)           #Reactive demand forecast
         
-        model.P_PV_Forecast=Param(model.T,within=NonNegativeReals,initalize=PV_Forecast)     #PV PMPP forecast
-        model.PV_Inv_Max_Power=Param(within=PositiveReals,initalize=PV_Inverter)             #PV inverter capacity
+        model.P_PV_Forecast=Param(model.T,within=NonNegativeReals,initialize=PV_Forecast)     #PV PMPP forecast
+        model.PV_Inv_Max_Power=Param(within=PositiveReals,initialize=PV_Inverter)             #PV inverter capacity
         
-        model.ESS_Min_SoC=Param(model.N,within=PositiveReals,initalize=ESS_MinSoC)           #Minimum SoC of ESSs
-        model.ESS_Max_SoC=Param(model.N,within=PositiveReals,initalize=ESS_MaxSoC)           #Maximum SoC of ESSs
-        model.ESS_SoC_Value=Param(model.N,within=PositiveReals,initalize=ESS_IniSoC)         #SoC value of ESSs at the begining of optimization horizon
-        model.ESS_Capacity=Param(model.N,within=PositiveReals,initalize=ESS_Capacity)        #Storage Capacity of ESSs
-        model.ESS_Max_Charge_Power=Param(model.N,within=PositiveReals,initalize=ESS_MaxCh)   #Max Charge Power of ESSs
-        model.ESS_Max_Discharge_Power=Param(model.N,within=PositiveReals,initalize=ESS_MaxDis)#Max Discharge Power of ESSs
-        model.ESS_Charging_Eff=Param(model.N,within=PositiveReals,initalize=ESS_ChEff)       #Charging efficiency of ESSs
-        model.ESS_Discharging_Eff=Param(model.N,within=PositiveReals,initalize=ESS_DisEff)   #Discharging efficiency of ESSs
+        model.ESS_Min_SoC=Param(model.N,within=PositiveReals,initialize=ESS_MinSoC)           #Minimum SoC of ESSs
+        model.ESS_Max_SoC=Param(model.N,within=PositiveReals,initialize=ESS_MaxSoC)           #Maximum SoC of ESSs
+        model.ESS_SoC_Value=Param(model.N,within=PositiveReals,initialize=ESS_IniSoC)         #SoC value of ESSs at the begining of optimization horizon
+        model.ESS_Capacity=Param(model.N,within=PositiveReals,initialize=ESS_Capacity)        #Storage Capacity of ESSs
+        model.ESS_Max_Charge_Power=Param(model.N,within=PositiveReals,initialize=ESS_MaxCh)   #Max Charge Power of ESSs
+        model.ESS_Max_Discharge_Power=Param(model.N,within=PositiveReals,initialize=ESS_MaxDis)#Max Discharge Power of ESSs
+        model.ESS_Charging_Eff=Param(model.N,within=PositiveReals,initialize=ESS_ChEff)       #Charging efficiency of ESSs
+        model.ESS_Discharging_Eff=Param(model.N,within=PositiveReals,initialize=ESS_DisEff)   #Discharging efficiency of ESSs
         
-        model.P_Grid_Max_Export_Power=Param(within=NonNegativeReals,initalize=Grid_P_Max_Exp)#Max active power export
-        model.Q_Grid_Max_Export_Power=Param(within=NonNegativeReals,initalize=Grid_Q_Max_Exp)#Max reactive power export        
+        model.P_Grid_Max_Export_Power=Param(within=NonNegativeReals,initialize=Grid_P_Max_Exp)#Max active power export
+        model.Q_Grid_Max_Export_Power=Param(within=NonNegativeReals,initialize=Grid_Q_Max_Exp)#Max reactive power export        
         
-        model.Grid_VGEN=Param(within=NonNegativeReals,initalize=Grid_V_Nom)
-        model.Grid_R=Param(within=NonNegativeReals,initalize=Grid_R)
-        model.Grid_X=Param(within=NonNegativeReals,initalize=Grid_X)
-        model.Grid_dV_Tolerance=Param(within=PositiveReals,initalize=Grid_dV)
+        model.Grid_VGEN=Param(within=NonNegativeReals,initialize=Grid_V_Nom)
+        model.Grid_R=Param(within=NonNegativeReals,initialize=Grid_R)
+        model.Grid_X=Param(within=NonNegativeReals,initialize=Grid_X)
+        model.Grid_dV_Tolerance=Param(within=PositiveReals,initialize=Grid_dV)
         
-        model.Price_Forecast=Param(model.T,initalize=Market_Forecast)                        #Electric price forecast
+        model.Price_Forecast=Param(model.T,initialize=Market_Forecast)                        #Electric price forecast
     
         
         ##################################       VARIABLES             #################################
@@ -239,10 +246,10 @@ class MinimizeGridExchange():
         
         return model
         
-        """
+        
 
 if __name__=="__main__":
-    
+    """
     #Building the optimization model
     optimizationmodel=MinimizeGridExchange()
     
@@ -260,4 +267,149 @@ if __name__=="__main__":
     
     #Printing the results
     print(results)
+    """
+    
+    #Constructing the dictionaries for the parameter setting
+    timeInput={}
+    timeInput['dT']=900
+    timeInput['horizon']=24
+    
+    loadInput={}
+    loadInput['P']={
+            0:	0.057,
+            1:	0.0906,
+            2:	0.0906,
+            3:	0.070066667,
+            4:	0.077533333,
+            5:	0.0906,
+            6:	0.0906,
+            7:	0.10935,
+            8:	0.38135,
+            9:	1.473716667,
+            10:	0.988183333,
+            11:	2.4413,
+            12:	0.4216,
+            13:	0.21725,
+            14:	0.4536,
+            15:	0.4899,
+            16:	0.092466667,
+            17:	0.088733333,
+            18:	0.0906,
+            19:	0.47475,
+            20:	0.48255,
+            21:	1.051866667,
+            22:	1.296316667,
+            23:	0.200733333}
+    loadInput['Q']={
+            0:	0.0,
+            1:	0.0,
+            2:	0.0,
+            3:	0.0,
+            4:	0.0,
+            5:	0.0,
+            6:	0.0,
+            7:	0.0,
+            8:	0.0,
+            9:	0.0,
+            10:	0.0,
+            11:	0.0,
+            12:	0.0,
+            13:	0.0,
+            14:	0.0,
+            15:	0.0,
+            16:	0.0,
+            17:	0.0,
+            18:	0.0,
+            19:	0.0,
+            20:	0.0,
+            21:	0.0,
+            22:	0.0,
+            23:	0.0}
+    
+    pvInput={}
+    pvInput['Pmpp']={
+            0:	0,
+            1:	0,
+            2:	0,
+            3:	0,
+            4:	0,
+            5:	0,
+            6:	0,
+            7:	0,
+            8:	1.13248512,
+            9:	3.016735616,
+            10:4.823979947,
+            11	:6.329861639,
+            12	:7.06663104,
+            13	:7.42742784,
+            14	:7.420178035,
+            15	:7.077290784,
+            16	:5.99361984,
+            17	:4.036273408,
+            18	:1.462618829,
+            19	:0,
+            20	:0,
+            21	:0,
+            22	:0,
+            23	:0}
+    pvInput['Pmax']=10
+    
+    essInput={0:{}}
+    essInput[0]['minSoC']=0.2
+    essInput[0]['maxSoC']=0.9
+    essInput[0]['iniSoC']=0.35
+    essInput[0]['capacity']=9.6*3600
+    essInput[0]['maxCh']=6.4
+    essInput[0]['maxDis']=6.4
+    essInput[0]['chargeEff']=0.9
+    essInput[0]['chargeEff']=0.85
+    
+    gridInput={}
+    gridInput['maxPExport']=10
+    gridInput['maxQExport']=10
+    gridInput['Vnom']=0.4
+    gridInput['R']=0.67
+    gridInput['X']=0.282
+    gridInput['voltagedropTolerance']=0.1
+    
+    marketInput={}
+    marketInput['elePrice']={
+        0:   34.61,
+        1:   33.28,
+        2:   33.03,
+        3:   32.93,
+        4:   31.96,
+        5:   33.67,
+        6:   40.45,
+        7:   47.16,
+        8:   47.68,
+        9:   46.23,
+        10:  43.01,
+        11:  39.86,
+        12:  37.64,
+        13:  37.14,
+        14:  39.11,
+        15:  41.91,
+        16:  44.11,
+        17:  48.02,
+        18:  51.65,
+        19:  48.73,
+        20:  43.56,
+        21:  38.31,
+        22:  37.66,
+        23:  36.31}
+    
+    dictlist=[timeInput,loadInput,pvInput,essInput,gridInput,marketInput]
+    optimizationmodel=MinimizeGridExchange(dictlist)
+    
+    #Constructing an instance of optimzation model
+    instance = optimizationmodel.abstractmodel.create_instance()
+    
+    #Solving the optimization problem
+    opt=SolverFactory("ipopt")
+    results=opt.solve(instance)
+    
+    #Printing the results
+    print(results)
+    
     
