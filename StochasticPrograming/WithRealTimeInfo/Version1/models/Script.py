@@ -11,7 +11,7 @@ import os
 
 project_dir=os.path.dirname(os.path.dirname(__file__))
 
-data_file=project_dir+'/scenariodata/EarlyLeaveEarlyArrival.dat'
+data_file=project_dir+'/scenariodata/EarlyLeaveShortCommute.dat'
 
 
 instance = model.create_instance(data_file)
