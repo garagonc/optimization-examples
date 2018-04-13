@@ -1,0 +1,68 @@
+set Stages := InitialStage FutureStage;
+
+set Nodes := RootNode                             
+             EarlyLeaveShortCommuteNode
+             EarlyLeaveMedCommuteNode
+             EarlyLeaveLongCommuteNode
+             LateLeaveShortCommuteNode
+             LateLeaveMedCommuteNode
+             LateLeaveLongCommuteNode;
+
+param NodeStage := RootNode         InitialStage    				   
+                   EarlyLeaveShortCommuteNode	  FutureStage
+   				      EarlyLeaveMedCommuteNode	     FutureStage
+    				   EarlyLeaveLongCommuteNode	  FutureStage
+    				   LateLeaveShortCommuteNode	  FutureStage
+    				   LateLeaveMedCommuteNode	     FutureStage
+    				   LateLeaveLongCommuteNode	     FutureStage;
+
+
+set Children[RootNode] :=    EarlyLeaveShortCommuteNode
+                             EarlyLeaveMedCommuteNode
+                             EarlyLeaveLongCommuteNode
+                             LateLeaveShortCommuteNode
+                             LateLeaveMedCommuteNode
+                             LateLeaveLongCommuteNode;
+
+
+param ConditionalProbability :=  RootNode       	1.0
+                                 EarlyLeaveShortCommuteNode	 0.03 
+                    				  EarlyLeaveMedCommuteNode	 0.21    
+                     				  EarlyLeaveLongCommuteNode	 0.06                     				  
+                    				  LateLeaveShortCommuteNode	 0.14 
+                    				  LateLeaveMedCommuteNode	 0.49 
+                    				  LateLeaveLongCommuteNode	 0.07;
+
+set Scenarios :=    EarlyLeaveShortCommute   
+        				 EarlyLeaveMedCommute    
+        				 EarlyLeaveLongCommute   
+        				 LateLeaveShortCommute   
+        				 LateLeaveMedCommute     
+        				 LateLeaveLongCommute;
+
+param ScenarioLeafNode := 
+                    EarlyLeaveShortCommute  EarlyLeaveShortCommuteNode 
+        				 EarlyLeaveMedCommute    EarlyLeaveMedCommuteNode
+        				 EarlyLeaveLongCommute   EarlyLeaveLongCommuteNode
+        				 LateLeaveShortCommute   LateLeaveShortCommuteNode 
+        				 LateLeaveMedCommute     LateLeaveMedCommuteNode
+        				 LateLeaveLongCommute   LateLeaveLongCommuteNode;
+
+
+set StageVariables[InitialStage] := P_PV_Output_ini
+                                    P_Grid_Output_ini
+                                    P_ESS_Output_ini
+                                    P_EV_Output_ini;
+
+set StageVariables[FutureStage] :=  P_PV_Output
+                                    P_Grid_Output
+                                    P_ESS_Output
+                                    P_EV_Output
+                                    SoC_ESS
+                                    SoC_EV;
+
+
+param StageCost := InitialStage InitialStageCost
+                   FutureStage  FutureStageCost;
+                   
+                     
