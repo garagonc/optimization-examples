@@ -26,8 +26,9 @@ model.Stages=Set(initialize=['InitialStage','FutureStage'])
 model.T = Set()
 model.T_SoC=Set()
 
-model.weightGrid=Param(initialize=0.6)
-model.weightEV=Param(initialize=0.4)
+model.weightGridExchange=Param(initialize=1.0)
+model.weightEVAwayCharging=Param(initialize=1.0)
+#TODO: Non-constant over time
 
 model.dT=Param(within=PositiveIntegers)
 
@@ -153,11 +154,11 @@ model.AbsoluteFutureImportConstraint = Constraint(model.T,rule=ComputeAbsoluteFu
 #############               State cost calculations              ##############
 def ComputeInitialStageCost_rule(model):
     #return model.InitialStageCost==abs(model.P_Grid_Output_ini)
-    return model.InitialStageCost*model.InitialStageCost==model.P_Grid_Output_ini*model.P_Grid_Output_ini
+    return model.InitialStageCost*model.InitialStageCost==model.P_Grid_Output_ini*model.P_Grid_Output_ini*model.weightGridExchange*model.weightGridExchange
 model.InitialStageCost_Contraint = Constraint(rule=ComputeInitialStageCost_rule)
 
 def ComputeFutureStageCost_rule(model):
-    return model.FutureStageCost==sum(model.Absolute_P_Grid_Exchange[t]+model.P_EV_Charge_Away[t] for t in model.T)
+    return model.FutureStageCost==sum(model.weightGridExchange*model.Absolute_P_Grid_Exchange[t]+model.weightEVAwayCharging*model.P_EV_Charge_Away[t] for t in model.T)
 model.FutureStageCost_Contraint = Constraint(rule=ComputeFutureStageCost_rule)
 ##################################################################################################
 
