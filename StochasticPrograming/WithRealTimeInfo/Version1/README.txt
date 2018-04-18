@@ -1,4 +1,4 @@
-Stochastic programming package for the optimization with foresight
+Stochastic programming package for the optimization with no foresight
 
 Possible scenarios
 ------------------------------------------------------------------
