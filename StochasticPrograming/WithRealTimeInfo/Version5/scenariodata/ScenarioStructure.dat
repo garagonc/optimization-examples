@@ -1,0 +1,49 @@
+set Stages := InitialStage FutureStage;
+
+set Nodes := RootNode                             
+             EarlyLeaveShortCommuteNode
+             EarlyLeaveMedCommuteNode
+             EarlyLeaveLongCommuteNode;
+
+param NodeStage :=  
+    RootNode                    InitialStage
+    EarlyLeaveShortCommuteNode	 FutureStage
+    EarlyLeaveMedCommuteNode	 FutureStage
+    EarlyLeaveLongCommuteNode	 FutureStage;
+
+set Children[RootNode] :=
+    EarlyLeaveShortCommuteNode
+    EarlyLeaveMedCommuteNode
+    EarlyLeaveLongCommuteNode;
+
+
+param ConditionalProbability :=  RootNode       	1.0
+                                 EarlyLeaveShortCommuteNode	 0.10 
+                    				  EarlyLeaveMedCommuteNode	 0.70    
+                     				  EarlyLeaveLongCommuteNode	 0.20;
+
+set Scenarios :=    EarlyLeaveShortCommute   
+        				 EarlyLeaveMedCommute    
+        				 EarlyLeaveLongCommute;
+
+param ScenarioLeafNode := 
+                    EarlyLeaveShortCommute  EarlyLeaveShortCommuteNode 
+        				 EarlyLeaveMedCommute    EarlyLeaveMedCommuteNode
+        				 EarlyLeaveLongCommute   EarlyLeaveLongCommuteNode;
+
+set StageVariables[InitialStage] := P_PV_Output_ini[*]
+                                    P_Grid_Output_ini[*]
+                                    P_ESS_Output_ini[*]
+                                    P_EV_ChargeHome_ini[*]
+                                    P_EV_ChargeAway_ini[*];
+
+set StageVariables[FutureStage] :=  P_PV_Output_rec[*]
+                                    P_Grid_Output_rec[*]
+                                    P_ESS_Output_rec[*]
+                                    P_EV_ChargeHome_rec[*]
+                                    P_EV_ChargeAway_rec[*];
+
+param StageCost := InitialStage InitialStageCost
+                   FutureStage  FutureStageCost;
+                   
+                     

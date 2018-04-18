@@ -1,0 +1,6 @@
+InitialStage, RootNode, EarlyLeaveLongCommute, InitialStageCost, None, 2.226017065162619
+InitialStage, RootNode, EarlyLeaveMedCommute, InitialStageCost, None, 2.226017065162619
+InitialStage, RootNode, EarlyLeaveShortCommute, InitialStageCost, None, 2.226017065162619
+FutureStage, EarlyLeaveLongCommuteNode, EarlyLeaveLongCommute, FutureStageCost, None, 13.510332395193142
+FutureStage, EarlyLeaveMedCommuteNode, EarlyLeaveMedCommute, FutureStageCost, None, 3.510332485200436
+FutureStage, EarlyLeaveShortCommuteNode, EarlyLeaveShortCommute, FutureStageCost, None, 0.0
