@@ -23,6 +23,9 @@ def stages_rule_(model):
 model.stage=Set(initialize=stages_rule)
 """
 model.Stages=Set(initialize=['InitialStage','FutureStage'])
+
+model.iniT=Set()
+model.recT=Set()
 model.T = Set()
 model.T_SoC=Set()
 
@@ -31,8 +34,6 @@ model.weightEVAwayCharging=Param(initialize=1.0)
 #TODO: Non-constant over time
 
 model.dT=Param(within=PositiveIntegers)
-
-
 
 
 #Time Invariant parameters
@@ -56,10 +57,6 @@ model.EV_Max_Charge_Power= Param(within=PositiveReals)
 #Real time data
 model.ESS_SoC_Value=Param(within=NonNegativeReals)
 model.EV_SoC_Value=Param(within=NonNegativeReals)
-model.P_PV_Value=Param(within=NonNegativeReals)
-model.P_Load_Value=Param(within=NonNegativeReals)
-model.Price_Value=Param(within=Reals)
-
 
 #Supposedly deterministic future paramters
 model.P_Load_Forecast = Param(model.T,within=NonNegativeReals)
@@ -73,92 +70,107 @@ model.P_EV_DriveDemand       = Param(model.T,within=NonNegativeReals)
 
 ################################################################################################
 ##################################       VARIABLES             #################################
-#############               First stage decision variables        #############
-model.P_PV_Output_ini   =Var(within=NonNegativeReals,bounds=(0,model.PV_Inv_Max_Power))
-model.P_Grid_Output_ini =Var(within=NonNegativeReals,bounds=(-model.P_Grid_Max_Export_Power,100000))
-model.P_ESS_Output_ini  =Var(within=Reals,bounds=(-model.ESS_Max_Charge_Power,model.ESS_Max_Discharge_Power))
-model.P_EV_Charge_ini   =Var(within=NonNegativeReals,bounds=(0,model.ESS_Max_Charge_Power))    #V2G neglected
+#################               First stage decision variables                 #################
+model.P_PV_Output_ini    =Var(model.iniT,within=NonNegativeReals,bounds=(0,model.PV_Inv_Max_Power))
+model.P_Grid_Output_ini  =Var(model.iniT,within=NonNegativeReals,bounds=(-model.P_Grid_Max_Export_Power,100000))
+model.P_ESS_Output_ini   =Var(model.iniT,within=Reals,bounds=(-model.ESS_Max_Charge_Power,model.ESS_Max_Discharge_Power))
+model.P_EV_ChargeHome_ini=Var(model.iniT,within=NonNegativeReals,bounds=(0,model.ESS_Max_Charge_Power))    #V2G neglected: Discharge takes place only when car drives
+model.P_EV_ChargeAway_ini=Var(model.iniT,within=NonNegativeReals,bounds=(0,model.ESS_Max_Charge_Power))   #Optimization starts at home  
 
-#############               Recourse Stage Variables              #############
-model.P_PV_Output   =Var(model.T,within=NonNegativeReals,bounds=(0,model.PV_Inv_Max_Power))                                    #Active power output of PV
-model.P_Grid_Output =Var(model.T,within=Reals,bounds=(-model.P_Grid_Max_Export_Power,100000)) 
-model.P_ESS_Output  =Var(model.T,within=Reals,bounds=(-model.ESS_Max_Charge_Power,model.ESS_Max_Discharge_Power))
+#################              Recourse Stage Variables                        #################
+model.P_PV_Output_rec    =Var(model.recT,within=NonNegativeReals,bounds=(0,model.PV_Inv_Max_Power))                                    #Active power output of PV
+model.P_Grid_Output_rec  =Var(model.recT,within=Reals,bounds=(-model.P_Grid_Max_Export_Power,100000)) 
+model.P_ESS_Output_rec   =Var(model.recT,within=Reals,bounds=(-model.ESS_Max_Charge_Power,model.ESS_Max_Discharge_Power))
+model.P_EV_ChargeHome_rec=Var(model.recT,within=NonNegativeReals,bounds=(0,model.ESS_Max_Charge_Power))    
+model.P_EV_ChargeAway_rec=Var(model.recT,within=NonNegativeReals,bounds=(0,model.ESS_Max_Charge_Power))     
 
-#V2G neglected: Discharge takes place only when car drives
-model.P_EV_Charge_AtHome   =Var(model.T,within=NonNegativeReals,bounds=(0,model.ESS_Max_Charge_Power))    
-model.P_EV_Charge_Away     =Var(model.T,within=NonNegativeReals,bounds=(0,model.ESS_Max_Charge_Power))     
-
-#############               State variables                       #############
+#################                     State Variables                          #################
 model.SoC_ESS                    =Var(model.T_SoC,within=NonNegativeReals,bounds=(model.ESS_Min_SoC,model.ESS_Max_SoC))
 model.SoC_EV                     =Var(model.T_SoC,within=NonNegativeReals,bounds=(model.EV_Min_SoC,model.EV_Max_SoC)) 
 model.Absolute_P_Grid_Exchange   =Var(model.T,within=NonNegativeReals)
 
-#############               Stage cost variables                 ##############
+#################                 Stage Costs Variables                        #################
 model.InitialStageCost=Var(within=NonNegativeReals)
 model.FutureStageCost =Var(within=NonNegativeReals)
 ##################################################################################################
 
 ##################################################################################################
 ##################################       CONSTRAINTS             #################################
-#############               Generation side constraints          ##############
-def _ini_pv_constraint(model):
-    return model.P_PV_Output_ini<=model.P_PV_Value
-model.iniPVConstraint=Constraint(rule=_ini_pv_constraint)
+#############               Generation side constraints                        ##############
+def _ini_pv_constraint(model,t):
+    return 0.0<=model.P_PV_Output_ini[t]<=model.P_PV_Forecast[t]
+model.iniPVConstraint=Constraint(model.iniT,rule=_ini_pv_constraint)
 
-def _future_pv_constraint(model,t):
-    return 0.0<=model.P_PV_Output[t]<=model.P_PV_Forecast[t]
-model.PVConstraint=Constraint(model.T,rule=_future_pv_constraint)
+def _rec_pv_constraint(model,t):
+    return 0.0<=model.P_PV_Output_rec[t]<=model.P_PV_Forecast[t]
+model.recPVConstraint=Constraint(model.recT,rule=_rec_pv_constraint)
 
+#############               House demand side constraints         ##############
+def _ini_demand_meeting(model,t):
+    return model.P_Load_Forecast[t]+model.P_EV_ChargeHome_ini[t]== model.P_PV_Output_ini[t] + model.P_ESS_Output_ini[t] + model.P_Grid_Output_ini[t]
+model.iniDemandConstraint=Constraint(model.iniT,rule=_ini_demand_meeting)
 
-#############               Demand side constraints              ##############
-def _ini_demand_meeting(model):
-    return model.P_Load_Value+model.P_EV_Charge_ini== model.P_PV_Output_ini + model.P_ESS_Output_ini + model.P_Grid_Output_ini
-model.iniDemandConstraint=Constraint(rule=_ini_demand_meeting)
-
-def _future_demand_meeting(model,t):
-    return model.P_Load_Forecast[t]+model.P_EV_Charge_AtHome[t]== model.P_PV_Output[t] + model.P_ESS_Output[t] + model.P_Grid_Output[t]
-model.DemandConstraint=Constraint(model.T,rule=_future_demand_meeting)
+def _rec_demand_meeting(model,t):
+    return model.P_Load_Forecast[t]+model.P_EV_ChargeHome_rec[t]== model.P_PV_Output_rec[t] + model.P_ESS_Output_rec[t] + model.P_Grid_Output_rec[t]
+model.recDemandConstraint=Constraint(model.recT,rule=_rec_demand_meeting)
 
 #############               EV charge constraints                ##############
-def _ev_charging_athome(model,t):
-    return 0.0<=model.P_EV_Charge_AtHome[t]<=model.EV_ParkAtHome_Forecast[t]*model.EV_Max_Charge_Power
-model.EV_ChargeAtHome=Constraint(model.T,rule=_ev_charging_athome)
+def _ini_ev_charging_athome(model,t):
+    return 0.0<=model.P_EV_ChargeHome_ini[t]<=model.EV_ParkAtHome_Forecast[t]*model.EV_Max_Charge_Power
+model.EV_ChargeAtHome_ini=Constraint(model.iniT,rule=_ini_ev_charging_athome)
 
-def _ev_charging_away(model,t):
-    return 0.0<=model.P_EV_Charge_Away[t]<=model.EV_ParkAway_Forecast[t]*model.EV_Max_Charge_Power
-model.EV_ChargeAway=Constraint(model.T,rule=_ev_charging_away)
+def _ini_ev_charging_away(model,t):
+    return 0.0<=model.P_EV_ChargeAway_ini[t]<=model.EV_ParkAway_Forecast[t]*model.EV_Max_Charge_Power
+model.EV_ChargeAway_ini=Constraint(model.iniT,rule=_ini_ev_charging_away)
 
-#############           State variable calculations              ##############
+def _rec_ev_charging_athome(model,t):
+    return 0.0<=model.P_EV_ChargeHome_rec[t]<=model.EV_ParkAtHome_Forecast[t]*model.EV_Max_Charge_Power
+model.EV_ChargeAtHome_rec=Constraint(model.recT,rule=_rec_ev_charging_athome)
+
+def _rec_ev_charging_away(model,t):
+    return 0.0<=model.P_EV_ChargeAway_rec[t]<=model.EV_ParkAway_Forecast[t]*model.EV_Max_Charge_Power
+model.EV_ChargeAway_rec=Constraint(model.recT,rule=_rec_ev_charging_away)
+
+
+#################           Real-time information constraints                  #################
 def state_of_charge_ess_firstTs(model):
-        return model.SoC_ESS[1]==model.ESS_SoC_Value - model.P_ESS_Output_ini*model.dT/(model.ESS_Capacity*3600) 
+        return model.SoC_ESS[0]==model.ESS_SoC_Value
 model.ESS_SOC_firstTS_Constraint=Constraint(rule=state_of_charge_ess_firstTs)
 
 def state_of_charge_ev_firstTs(model):
-        return model.SoC_EV[1]==model.EV_SoC_Value  + model.P_EV_Charge_ini*model.dT/(model.EV_Capacity*3600)
+        return model.SoC_EV[0]==model.EV_SoC_Value
 model.EV_SOC_firstTS_Constraint=Constraint(rule=state_of_charge_ev_firstTs)
 
-def state_of_charge_ess(model,t):   
-    return model.SoC_ESS[t+1]==model.SoC_ESS[t] - model.P_ESS_Output[t]*model.dT/(model.ESS_Capacity*3600)
-model.ESS_SOCConstraint=Constraint(model.T,rule=state_of_charge_ess)
 
-#########################################
-def state_of_charge_ev(model,t):
-    return model.SoC_EV[t+1]==model.SoC_EV[t] + (model.P_EV_Charge_AtHome[t]+model.P_EV_Charge_Away[t]-model.P_EV_DriveDemand[t])*model.dT/(model.EV_Capacity*3600)
-model.EV_SOCConstraint=Constraint(model.T,rule=state_of_charge_ev)
+#################           State variable calculations                        #################
+def _ini_state_of_charge_ess(model,t):   
+    return model.SoC_ESS[t+1]==model.SoC_ESS[t] - model.P_ESS_Output_ini[t]*model.dT/(model.ESS_Capacity*3600)
+def _rec_state_of_charge_ess(model,t):
+    return model.SoC_ESS[t+1]==model.SoC_ESS[t] - model.P_ESS_Output_rec[t]*model.dT/(model.ESS_Capacity*3600)
+model.ESS_SOCConstraint_ini=Constraint(model.iniT,rule=_ini_state_of_charge_ess)
+model.ESS_SOCConstraint_rec=Constraint(model.recT,rule=_rec_state_of_charge_ess)
 
-def ComputeAbsoluteFutureImport(model,t):
-    #return model.Absolute_of_P_Grid_Output[t]==abs(model.P_Grid_Output[t])
-    return model.Absolute_P_Grid_Exchange[t]*model.Absolute_P_Grid_Exchange[t]==model.P_Grid_Output[t]*model.P_Grid_Output[t]
-model.AbsoluteFutureImportConstraint = Constraint(model.T,rule=ComputeAbsoluteFutureImport)
+def _ini_state_of_charge_ev(model,t):
+    return model.SoC_EV[t+1]==model.SoC_EV[t] + (model.P_EV_ChargeHome_ini[t]+model.P_EV_ChargeAway_ini[t]-model.P_EV_DriveDemand[t])*model.dT/(model.EV_Capacity*3600)
+def _rec_state_of_charge_ev(model,t):
+    return model.SoC_EV[t+1]==model.SoC_EV[t] + (model.P_EV_ChargeHome_rec[t]+model.P_EV_ChargeAway_rec[t]-model.P_EV_DriveDemand[t])*model.dT/(model.EV_Capacity*3600)
+model.EV_SOCConstraint_ini=Constraint(model.iniT,rule=_ini_state_of_charge_ev)
+model.EV_SOCConstraint_rec=Constraint(model.recT,rule=_rec_state_of_charge_ev)
+
+def _ini_ComputeAbsoluteImport(model,t):
+    return model.Absolute_P_Grid_Exchange[t]*model.Absolute_P_Grid_Exchange[t]==model.P_Grid_Output_ini[t]*model.P_Grid_Output_ini[t]
+def _rec_ComputeAbsoluteImport(model,t):
+    return model.Absolute_P_Grid_Exchange[t]*model.Absolute_P_Grid_Exchange[t]==model.P_Grid_Output_rec[t]*model.P_Grid_Output_rec[t]
+model.AbsoluteImportConstraint_ini = Constraint(model.iniT,rule=_ini_ComputeAbsoluteImport)
+model.AbsoluteImportConstraint_rec = Constraint(model.recT,rule=_rec_ComputeAbsoluteImport)
   
 #############               State cost calculations              ##############
 def ComputeInitialStageCost_rule(model):
-    #return model.InitialStageCost==abs(model.P_Grid_Output_ini)
-    return model.InitialStageCost*model.InitialStageCost==model.P_Grid_Output_ini*model.P_Grid_Output_ini*model.weightGridExchange*model.weightGridExchange
+    return model.InitialStageCost==sum(model.weightGridExchange*model.Absolute_P_Grid_Exchange[t] for t in model.iniT)
 model.InitialStageCost_Contraint = Constraint(rule=ComputeInitialStageCost_rule)
 
 def ComputeFutureStageCost_rule(model):
-    return model.FutureStageCost==sum(model.weightGridExchange*model.Absolute_P_Grid_Exchange[t]+model.weightEVAwayCharging*model.P_EV_Charge_Away[t] for t in model.T)
+    return model.FutureStageCost==sum(model.weightGridExchange*model.Absolute_P_Grid_Exchange[t]+model.weightEVAwayCharging*model.P_EV_ChargeAway_rec[t] for t in model.recT)
 model.FutureStageCost_Contraint = Constraint(rule=ComputeFutureStageCost_rule)
 ##################################################################################################
 
