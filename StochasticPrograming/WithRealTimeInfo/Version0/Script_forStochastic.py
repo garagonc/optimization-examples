@@ -83,3 +83,46 @@ with open(csv_file) as f:
                 P_Grid_Output_sho[int(row[3])]=float(row[4])            
             elif row[2]==' P_PV_Output_rec':
                 P_PV_Output_sho[int(row[3])]=float(row[4])        
+
+#%%
+PGRID0_sho=[P_Grid_Output_ini[0]]
+PPV0_sho  =[P_PV_Output_ini[0]]
+PBAT0_sho =[P_ESS_Output_ini[0]]
+PEVH0_sho =[P_EV_ChargeHome_ini[0]]
+PEVA0_sho =[P_EV_ChargeAway_ini[0]]
+
+PGRID0_med=[P_Grid_Output_ini[0]]
+PPV0_med  =[P_PV_Output_ini[0]]
+PBAT0_med =[P_ESS_Output_ini[0]]
+PEVH0_med =[P_EV_ChargeHome_ini[0]]
+PEVA0_med =[P_EV_ChargeAway_ini[0]]
+
+PGRID0_lng=[P_Grid_Output_ini[0]]
+PPV0_lng  =[P_PV_Output_ini[0]]
+PBAT0_lng =[P_ESS_Output_ini[0]]
+PEVH0_lng =[P_EV_ChargeHome_ini[0]]
+PEVA0_lng =[P_EV_ChargeAway_ini[0]]
+
+
+for t in range(1,24):  
+    #If short commute scenario occurs
+    PGRID0_sho.append(P_Grid_Output_sho[t])
+    PPV0_sho.append(P_PV_Output_sho[t])
+    PBAT0_sho.append(P_ESS_Output_sho[t])
+    PEVH0_sho.append(P_EV_ChargeHome_sho[t])
+    PEVA0_sho.append(P_EV_ChargeAway_sho[t])
+    
+    #If med commute scenario occurs
+    PGRID0_med.append(P_Grid_Output_med[t])
+    PPV0_med.append(P_PV_Output_med[t])
+    PBAT0_med.append(P_ESS_Output_med[t])
+    PEVH0_med.append(P_EV_ChargeHome_med[t])
+    PEVA0_med.append(P_EV_ChargeAway_med[t])
+       
+    #If long commute scenario occurs
+    PGRID0_lng.append(P_Grid_Output_lng[t])
+    PPV0_lng.append(P_PV_Output_lng[t])
+    PBAT0_lng.append(P_ESS_Output_lng[t])
+    PEVH0_lng.append(P_EV_ChargeHome_lng[t])
+    PEVA0_lng.append(P_EV_ChargeAway_lng[t])
+    
