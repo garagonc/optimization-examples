@@ -351,20 +351,16 @@ dssText.Command = 'Set mode = daily stepsize=1m number=1'
 
 dssCircuit.Solution.dblHour=0.0
 
-#dssLoads.name='No52'
-#dssLoads.kW = 500
-#print(dssLoads.cfactor)
-#print(dssLoads.allnames)
-#print(dssLoads.kw)
-#print(dssCircuit.ActiveCktElement.powers)
-#print(dssCircuit.TotalPower)
-#for i in range(len(tri_ph_load_model)):
-num_steps=1440*2
+pv_power=[]
+load=[]
+num_steps=1440
 for i in range(num_steps):
     LoadkW=getLoadskw()
-    #print(dssCktElement.seqpowers)
     dssSolution.solve()
-    #dssText.Command = 'Updatestorage'
+    
+    load.append(LoadkW[16])
+    pv=getPVPower('PV_Menapace')
+    pv_power.append(pv)
     load_profile.append(LoadkW)
     #dssCircuit.SetActiveBus('82876')
     dssCircuit.SetActiveBus('121117')
@@ -375,195 +371,17 @@ for i in range(num_steps):
     v3.append(puList[2])
     timestamp.append(the_time)
     the_time = the_time + timedelta(minutes=1)
+
+
+
+
+# %%
     
-#dssMonitors.Name=('m1')
-#dssMonitors.show
-#dssText.Command('Plot monitor object=m1 channels=(1 )')
-#dssCircuit.Loads.name ='No52'
-#dssCircuit.Loads.kW = 0
-#dssCircuit.Loads.name ='No52_S'
-#dssCircuit.Loads.kW = 0
-saveArrayInExcel(load_profile,results_dir,"LoadProfileControlPV")
-#dssText.Command = 'CloseDI'
+df_PV=pandas.DataFrame(list(zip(timestamp, pv_power,load)),columns=['time','PV','Load'])
 
-#######################################################################
-##########Calculation with PV and storage
-#######################################################################
-#def Calculate():
-os.chdir(r'C:\Users\guemruekcue\internship\optimization-agent')
-script_dir = os.path.dirname(__file__)
-results_dir = os.path.join(os.path.dirname(__file__), 'results/')
-voltages=[]
-vS1=[]
-vS2=[]
-vS3=[]
-load_profile=[]
-timestamp=[]
-the_time =  datetime.combine(date.today(), time(0, 0))
-resStorage=[]
-LoadkW=[]
-x=0
-simTime=[]
+fig, ax1= plt.subplots(1, 1,figsize=(10,6))
+df_PV.plot(x='time',y=['PV','Load'],rot=90, ax=ax1,legend=True)
 
-#we want 1 solution for each iteration so we can interact with the solution
-dssText.Command = 'enable Storage.AtPVNode'
-dssText.Command = 'solve mode=snap'
-dssText.Command = 'Set mode = daily stepsize=1m number=1'
+plt.ylabel('Generation-Consumption [kW]')
 
-
-dssCircuit.Solution.dblHour=0.0
-
-#dssLoads.name='No52'
-#dssLoads.kW = 500
-#print(dssLoads.cfactor)
-#print(dssLoads.allnames)
-#print(dssLoads.kw)
-#print(dssCircuit.ActiveCktElement.powers)
-#print(dssCircuit.TotalPower)
-#for i in range(len(tri_ph_load_model)):
-
-print(dssPVsystems.Count)
-print(dssPVsystems.Idx)
-dssPVsystems.Name='PV_Menapace'
-print("Este es el nombre: "+dssPVsystems.Name)
-
-print("Este es el power: "+str(dssPVsystems.kw))
-num_steps=1440*2
-for i in range(num_steps):
-    
-    if i > 0:
-        LoadkW=getLoadskw()
-        current_value=getLoadkwNo(54)
-        #resStorage.append(thresholdPowerStorage(current_value,0.7,2.2))
-        SoC_Battery=getStoredStorage()
-        PV_power=getPVPower('PV_Menapace')
-        resStorage.append(controlRasmusStorage(SoC_Battery,PV_power, current_value))
-    #dssCircuit.SetActiveBus('121117')
-    #puList = dssBus.puVmagAngle[0::2]
-    #current_value=puList[2]
-    #resStorage.append(thresholdVolStorage(current_value,1.01,0.98))
-    #print(dssCktElement.seqpowers)
-    dssSolution.solve()
-    #dssText.Command = 'Updatestorage'
-    load_profile.append(LoadkW)
-    #dssCircuit.SetActiveBus('82876')
-    dssCircuit.SetActiveBus('121117')
-    puList = dssBus.puVmagAngle[0::2]
-    voltages.append(puList)
-    vS1.append(puList[0])
-    vS2.append(puList[1])
-    vS3.append(puList[2])
-    timestamp.append(the_time)
-    the_time = the_time + timedelta(minutes=1)
-
-#dssCircuit.Loads.name ='No52'
-#dssCircuit.Loads.kW = 0
-#dssCircuit.Loads.name ='No52_S'
-#dssCircuit.Loads.kW = 0
-saveArrayInExcel(load_profile,results_dir,"LoadProfileControlStorage")
-saveArrayInExcel(resStorage,results_dir,"StorageControl")
-dssText.Command = 'CloseDI'
-
-
-#######################################################################
-##########Calculation with PV and storage and optimization of price
-#######################################################################
-
-
-#######################################################################
-##########calculation with electric vehicle 
-#######################################################################
-'''
-v_r=[]
-v_s=[]
-v_t=[]
-EV_charger_step = 0
-charger_per_step = 0
-EV_full=14.5
-dod=0.8
-EV_eighty_energy = round(((EV_full * dod)/3.3)*60)
-charger = 0
-#h = random.randint(0,23)
-#m = random.randint(0,59)
-h=18
-m=25
-EV_plug_time = datetime.combine(date.today(), time(h, m))
-for i in range(len(tri_ph_load_model)):
-    dssCircuit.Loads.name ='54'
-    #dssCircuit.Loads.kW = tri_ph_load_model[i]
-    #dssCircuit.Loads.name ='No52_S'
-    #dssCircuit.Loads.kW = one_ph_load_model[i]
-    if EV_plug_time.time() == the_time.time():
-        charger = 3.3
-        charger_per_step = 1
-    dssCircuit.Loads.kW = dssCircuit.Loads.kW + charger
-    EV_charger_step += charger_per_step
-    if EV_charger_step >= EV_eighty_energy:
-        charger = 0
-        
-    current_value=dssCircuit.Loads.kW
-   
-    #resStorage.append(thresholdStorage(current_value,20,40))
-    dssSolution.solve()
-    dssCircuit.SetActiveBus('121117')
-    puList = dssBus.puVmagAngle[0::2]
-    voltages.append(puList)
-    v_r.append(puList[0])
-    v_s.append(puList[1])
-    v_t.append(puList[2])
-    the_time = the_time + timedelta(minutes=1)
-    load_profile.append(dssCircuit.Loads.kW)
-'''
-
-#######################################################################
-##########plot of the voltage vectors
-#######################################################################
-
-os.chdir(r'C:\Users\guemruekcue\internship\optimization-agent')
-script_dir = os.path.dirname(__file__)
-results_dir = os.path.join(os.path.dirname(__file__), 'results/')
-file_name="Analysis by Giggi"
-
-
-styles1 = ['b','r','g']
-styles2 = ['b:','r:','g:']
-styles3 = ['b--','r--','g--']
-
-df1 = pandas.DataFrame(list(zip(timestamp, v1, v2,v3)), columns=['time','R (PV)','S (PV)','T (PV)'])
-#df2 = pandas.DataFrame(list(zip(timestamp, v_r, v_s,v_t)), columns=['time','R (dumb charging)','S (dumb charging)','T (dumb charging)'])
-df2 = pandas.DataFrame(list(zip(timestamp, vS1, vS2,vS3)), columns=['time','R (storage)','S (storage)','T (storage)'])
-df4 = pandas.DataFrame(list(zip(timestamp, v11, v12, v13)), columns=['time','R','S','T'])
-#dfLM=pandas.DataFrame(list(zip(timestamp, one_ph_load_model)),columns=['time','Load profile'])
-fig, ax = plt.subplots(figsize=(12, 8), dpi=120)
-df1.plot(x='time',y=['R (PV)','S (PV)','T (PV)'],rot=90, style=styles1, ax=ax)
-#df2.plot(x='time',y=['R (storage)','S (storage)','T (storage)'],rot=90, style=styles2, ax=ax)
-df4.plot(x='time',y=['R','S','T'],rot=90, style=styles3, ax=ax)
-#dfLM.plot(x='time',y=['Load profile'],rot=90, style=styles3, ax=ax)
-
-plt.gcf().autofmt_xdate()
-plt.ylabel('Voltage (p.u.)', fontsize=18)
-plt.xlabel('Time', fontsize=18)
-plt.title(file_name)
-plt.rc('axes', titlesize=20)
-
-plt.show()
-
-if not os.path.isdir(results_dir):
-    os.makedirs(results_dir)
-
-fig.savefig(results_dir + file_name + ".png")
-
-#######################################################################
-##########saving info as an excel file
-#######################################################################
-
-
-# Create a Pandas Excel writer using XlsxWriter as the engine.
-writer = pandas.ExcelWriter(results_dir + file_name+'.xlsx', engine='xlsxwriter')
-
-# Convert the dataframe to an XlsxWriter Excel object.
-df1.to_excel(writer, sheet_name='No EV')
-#df2.to_excel(writer, sheet_name='EV')
-
-# Close the Pandas Excel writer and output the Excel file.
-writer.save()
+fig.savefig("PV.png")
