@@ -9,7 +9,7 @@ class Scenario():
     
     def __init__(self,T,PV_Inv_Max_Power,P_Grid_Max_Export_Power,
                  ESS_Min_SoC,ESS_Max_SoC,ESS_Capacity,ESS_Max_Charge_Power,ESS_Max_Discharge_Power,
-                 P_Load_Forecast,P_PV_Forecast,Price_Forecast):
+                 P_Load_Forecast,Q_Load_Forecast,P_PV_Forecast,Price_Forecast):
         
         # Time parameters
         self.T=T  #Total number of time steps: Optimization horizon
@@ -25,6 +25,7 @@ class Scenario():
         
         #Forecasts
         self.P_Load_Forecast =P_Load_Forecast
+        self.Q_Load_Forecast =Q_Load_Forecast
         self.P_PV_Forecast   =P_PV_Forecast
         self.Price_Forecast  =Price_Forecast
         

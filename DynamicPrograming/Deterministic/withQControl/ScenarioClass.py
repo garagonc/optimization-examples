@@ -9,7 +9,7 @@ class Scenario():
     
     def __init__(self,T,PV_Inv_Max_Power,P_Grid_Max_Export_Power,
                  ESS_Min_SoC,ESS_Max_SoC,ESS_Capacity,ESS_Max_Charge_Power,ESS_Max_Discharge_Power,
-                 P_Load_Forecast,P_PV_Forecast,Price_Forecast):
+                 P_Load_Forecast,Q_Load_Forecast,P_PV_Forecast,Price_Forecast):
         
         # Time parameters
         self.T=T  #Total number of time steps: Optimization horizon
@@ -25,6 +25,7 @@ class Scenario():
         
         #Forecasts
         self.P_Load_Forecast =P_Load_Forecast
+        self.Q_Load_Forecast =Q_Load_Forecast
         self.P_PV_Forecast   =P_PV_Forecast
         self.Price_Forecast  =Price_Forecast
         
@@ -54,6 +55,31 @@ p_Load_Forecast={0:   0.057,
                  21:	1.051866667,
                  22:	1.296316667,
                  23:	0.200733333}
+
+q_Load_Forecast={0:   0.0,
+                 1:   0.0,
+                 2:   0.0,
+                 3:   0.0,
+                 4:	0.0,
+                 5:	0.0,
+                 6:	0.0,
+                 7:	0.0,
+                 8:	0.0,
+                 9:	0.0,
+                 10:	0.0,
+                 11:	0.0,
+                 12:	0.0,
+                 13:	0.0,
+                 14:	0.0,
+                 15:	0.0,
+                 16:	0.0,
+                 17:	0.0,
+                 18:	0.0,
+                 19:	0.0,
+                 20:	0.0,
+                 21:	0.0,
+                 22:	0.0,
+                 23:	0.0}
 
 p_PV_Forecast={  0:   0,
                  1:	0,
@@ -119,6 +145,6 @@ horizon=24;
 # %% optimization model for the calculation of optimal decision at a particular state
 scenario_24Ts=Scenario(horizon,pv_Inv_Max_Power,p_Grid_Max_Export_Power,
                  ess_Min_SoC,ess_Max_SoC,ess_Capacity,ess_Max_Charge_Power,ess_Max_Discharge_Power,
-                 p_Load_Forecast,p_PV_Forecast,price_Forecast)
+                 p_Load_Forecast,q_Load_Forecast,p_PV_Forecast,price_Forecast)
 
 

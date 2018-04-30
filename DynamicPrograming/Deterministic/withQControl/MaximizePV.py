@@ -35,6 +35,7 @@ class DynamicMaximizePV():
         
         #Forecasts
         self.P_Load_Forecast =scenarioParameters.P_Load_Forecast
+        self.Q_Load_Forecast =scenarioParameters.Q_Load_Forecast
         self.P_PV_Forecast   =scenarioParameters.P_PV_Forecast
         self.Price_Forecast  =scenarioParameters.Price_Forecast
             
@@ -55,7 +56,7 @@ class DynamicMaximizePV():
         self.Decision=dict.fromkeys(keylistforDecisions)
     
         for t,s in product(self.timeIndexSet ,self.stateIndexSet):
-            self.Decision[t,s]={'PV':None,'Grid':None,'ESS':None,'FinalSoC':None}
+            self.Decision[t,s]={'P_PV':None,'Q_PV':None,'P_Grid':None,'Q_Grid':None,'ESS':None,'FinalSoC':None}
         
         #No inherent value of end state cases
         for s in self.stateIndexSet:
@@ -87,12 +88,22 @@ class DynamicMaximizePV():
         model.whichfinalstate=Var(model.states,within=Binary)
    
         model.P_PV=Var(bounds=(0,self.P_PV_Forecast[timestep]))
+        model.Q_PV=Var(bounds=(0,self.P_PV_Forecast[timestep]))
         model.P_ESS=Var(bounds=(-self.ESS_Max_Charge_Power,self.ESS_Max_Discharge_Power))
-        model.P_GRID=Var(bounds=(-self.P_Grid_Max_Export_Power,10000))    
+        model.P_GRID=Var(bounds=(-self.P_Grid_Max_Export_Power,10000))   
+        model.Q_GRID=Var(bounds=(-self.P_Grid_Max_Export_Power,10000))
 
-        def demandmeeting(model):
+        def p_demandmeeting(model):
             return self.P_Load_Forecast[timestep]==model.P_PV+model.P_ESS+model.P_GRID
-        model.const_demand=Constraint(rule=demandmeeting)
+        model.const_p_demand=Constraint(rule=p_demandmeeting)
+
+        def q_demandmeeting(model):
+            return self.Q_Load_Forecast[timestep]==model.Q_PV+model.Q_GRID
+        model.const_q_demand=Constraint(rule=q_demandmeeting)
+
+        def pv_const(model):
+            return self.P_PV_Forecast[timestep]==model.P_PV*model.P_PV+model.Q_PV*model.Q_PV
+        model.const_pv_gen=Constraint(rule=pv_const)
         
         def delta_soc(model):
             return sum(model.whichfinalstate[state]*model.finalsoc[state] for state in model.states)==initialsoc-model.P_ESS/self.ESS_Capacity*100
@@ -103,9 +114,9 @@ class DynamicMaximizePV():
         model.const_com=Constraint(rule=combinatorics)
 
         def objrule0(model):
-            return model.P_GRID*model.P_GRID+sum(model.whichfinalstate[state]*self.Value[timestep+1,state] for state in model.states)        
+            return model.P_GRID*model.P_GRID+model.Q_GRID*model.Q_GRID+sum(model.whichfinalstate[state]*self.Value[timestep+1,state] for state in model.states)        
         def objrule1(model):
-            return model.P_PV+sum(model.whichfinalstate[state]*self.Value[timestep+1,state] for state in model.states)
+            return model.P_PV*model.P_PV+model.Q_PV*model.Q_PV+sum(model.whichfinalstate[state]*self.Value[timestep+1,state] for state in model.states)
         def objrule2(model):
             return self.Price_Forecast[timestep]*model.P_GRID+sum(model.whichfinalstate[state]*self.Value[timestep+1,state] for state in model.states)
         
@@ -119,13 +130,15 @@ class DynamicMaximizePV():
         self.solver.solve(model)
         
         P_PV=model.P_PV()
+        Q_PV=model.Q_PV()
         P_ESS=model.P_ESS()
         P_GRID=model.P_GRID()
+        Q_GRID=model.Q_GRID()
             
         finalsoc=sum(model.whichfinalstate[state]()*model.finalsoc[state] for state in model.states)
         V=model.obj()
                    
-        return P_PV,P_ESS,P_GRID,V,finalsoc       
+        return P_PV,Q_PV,P_ESS,P_GRID,Q_GRID,V,finalsoc       
     
     def findstateoptimals(self,timestep):
         """
@@ -135,12 +148,14 @@ class DynamicMaximizePV():
         for ini_soc in self.stateIndexSet:
             results=self.optimaldecisioncalculator(timestep,ini_soc)
             
-            self.Decision[timestep,ini_soc]['PV']  =results[0]
-            self.Decision[timestep,ini_soc]['ESS'] =results[1]
-            self.Decision[timestep,ini_soc]['Grid']=results[2]
-            self.Decision[timestep,ini_soc]['FinalSoC']=results[4]
+            self.Decision[timestep,ini_soc]['P_PV']  =results[0]
+            self.Decision[timestep,ini_soc]['Q_PV']  =results[1]
+            self.Decision[timestep,ini_soc]['ESS'] =results[2]
+            self.Decision[timestep,ini_soc]['P_Grid']=results[3]
+            self.Decision[timestep,ini_soc]['Q_Grid']=results[4]
+            self.Decision[timestep,ini_soc]['FinalSoC']=results[6]
         
-            self.Value[timestep,ini_soc]=results[3]
+            self.Value[timestep,ini_soc]=results[5]
             
     def wholeMapCalculation(self):
         """
@@ -155,8 +170,10 @@ class DynamicMaximizePV():
         """
         self.wholeMapCalculation()
         self.P_PV=[]
+        self.Q_PV=[]
         self.P_ESS=[]
         self.P_Grid=[]
+        self.Q_Grid=[]
     
         for t in self.timeIndexSet:      
             if t==0:
@@ -164,9 +181,11 @@ class DynamicMaximizePV():
             else:
                 initialstate=int(finalstate)
 
-            self.P_PV.append(self.Decision[t,initialstate]['PV'])
+            self.P_PV.append(self.Decision[t,initialstate]['P_PV'])
+            self.Q_PV.append(self.Decision[t,initialstate]['Q_PV'])
             self.P_ESS.append(self.Decision[t,initialstate]['ESS'])
-            self.P_Grid.append(self.Decision[t,initialstate]['Grid'])
+            self.P_Grid.append(self.Decision[t,initialstate]['P_Grid'])
+            self.Q_Grid.append(self.Decision[t,initialstate]['Q_Grid'])
             finalstate=self.Decision[t,initialstate]['FinalSoC']
          
 
@@ -177,7 +196,7 @@ if __name__=="__main__":
     opt3= SolverFactory("bonmin", executable="C:/cygwin/home/bonmin/Bonmin-1.8.6/build/bin/bonmin")
   
     import time
-    from Deterministic.withoutQControl.ScenarioClass import scenario_24Ts
+    from Deterministic.withQControl.ScenarioClass import scenario_24Ts
     
     #Constructing an instance of optimzation model
     ess_soc_domain=[20,30,40,50,60,70,80,90]   
@@ -188,12 +207,16 @@ if __name__=="__main__":
     end_time=time.time()
     print("Computation time:",end_time-start_time,"seconds")
 
-    with open('dynamic_MaximizePV.csv','w') as file:
+    with open('dynamic2_MaximizePV.csv','w') as file:
         for ts in range(dynprog_opt3.T):
             file.write(str(dynprog_opt3.P_PV[ts]))
             file.write(",")
             file.write(str(dynprog_opt3.P_ESS[ts]))
             file.write(",")
             file.write(str(dynprog_opt3.P_Grid[ts]))
+            file.write(",")
+            file.write(str(dynprog_opt3.Q_PV[ts]))
+            file.write(",")
+            file.write(str(dynprog_opt3.Q_Grid[ts]))
             file.write('\n')
 
