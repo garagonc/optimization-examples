@@ -17,10 +17,15 @@ P_EV_ChargeAway=[]
 P_EV_ChargeHome=[]
 
 
-def solve_stochastic_programming(timestep,SoC_ESS,SoC_EV):
+def solve_stochastic_programming(timestep,SoC_ESS,SoC_EV,Position_EV=True):
     construct_scenario(timestep,SoC_ESS,SoC_EV)
-    command='runph --model-directory=models --instance-directory=nodedata'+str(timestep)+' --default-rho=1 --solver=ipopt --solution-writer=pyomo.pysp.plugins.csvsolutionwriter'
-    call(command)
+    command1='runph --model-directory=model_ev_home --instance-directory=nodedata'+str(timestep)+' --default-rho=1 --solver=ipopt --solution-writer=pyomo.pysp.plugins.csvsolutionwriter'
+    command2='runph --model-directory=model_ev_away --instance-directory=nodedata'+str(timestep)+' --default-rho=1 --solver=ipopt --solution-writer=pyomo.pysp.plugins.csvsolutionwriter'
+    if Position_EV==True:
+        call(command1)
+    else:
+        call(command2)
+    
     csv_file = "ph.csv"
     with open(csv_file) as f:
         for line in f:
