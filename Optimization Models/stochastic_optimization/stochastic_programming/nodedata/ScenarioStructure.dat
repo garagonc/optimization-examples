@@ -2,180 +2,72 @@ set Stages := InitialStage FutureStage;
 
 set Nodes := RootNode                             
             EarlyLeaveShortCommuteEarlyArrivalNode
-            EarlyLeaveMedCommuteEarlyArrivalNode
-            EarlyLeaveLongCommuteEarlyArrivalNode
             EarlyLeaveShortCommuteNormalArrivalNode
-            EarlyLeaveMedCommuteNormalArrivalNode
-            EarlyLeaveLongCommuteNormalArrivalNode
             EarlyLeaveShortCommuteLateArrivalNode
-            EarlyLeaveMedCommuteLateArrivalNode
-            EarlyLeaveLongCommuteLateArrivalNode
             NormalLeaveShortCommuteEarlyArrivalNode
-            NormalLeaveMedCommuteEarlyArrivalNode
-            NormalLeaveLongCommuteEarlyArrivalNode
             NormalLeaveShortCommuteNormalArrivalNode
-            NormalLeaveMedCommuteNormalArrivalNode
-            NormalLeaveLongCommuteNormalArrivalNode
             NormalLeaveShortCommuteLateArrivalNode
-            NormalLeaveMedCommuteLateArrivalNode
-            NormalLeaveLongCommuteLateArrivalNode
             LateLeaveShortCommuteEarlyArrivalNode
-            LateLeaveMedCommuteEarlyArrivalNode
-            LateLeaveLongCommuteEarlyArrivalNode
             LateLeaveShortCommuteNormalArrivalNode
-            LateLeaveMedCommuteNormalArrivalNode
-            LateLeaveLongCommuteNormalArrivalNode
             LateLeaveShortCommuteLateArrivalNode
-            LateLeaveMedCommuteLateArrivalNode
-            LateLeaveLongCommuteLateArrivalNode
 ;
 
 param NodeStage :=  
     RootNode                    InitialStage
             EarlyLeaveShortCommuteEarlyArrivalNode      FutureStage
-            EarlyLeaveMedCommuteEarlyArrivalNode        FutureStage
-            EarlyLeaveLongCommuteEarlyArrivalNode       FutureStage
             EarlyLeaveShortCommuteNormalArrivalNode     FutureStage
-            EarlyLeaveMedCommuteNormalArrivalNode       FutureStage
-            EarlyLeaveLongCommuteNormalArrivalNode      FutureStage
             EarlyLeaveShortCommuteLateArrivalNode       FutureStage
-            EarlyLeaveMedCommuteLateArrivalNode         FutureStage
-            EarlyLeaveLongCommuteLateArrivalNode        FutureStage
             NormalLeaveShortCommuteEarlyArrivalNode     FutureStage
-            NormalLeaveMedCommuteEarlyArrivalNode       FutureStage
-            NormalLeaveLongCommuteEarlyArrivalNode      FutureStage
             NormalLeaveShortCommuteNormalArrivalNode    FutureStage
-            NormalLeaveMedCommuteNormalArrivalNode      FutureStage
-            NormalLeaveLongCommuteNormalArrivalNode     FutureStage
             NormalLeaveShortCommuteLateArrivalNode      FutureStage
-            NormalLeaveMedCommuteLateArrivalNode        FutureStage
-            NormalLeaveLongCommuteLateArrivalNode       FutureStage
             LateLeaveShortCommuteEarlyArrivalNode       FutureStage
-            LateLeaveMedCommuteEarlyArrivalNode         FutureStage
-            LateLeaveLongCommuteEarlyArrivalNode        FutureStage
             LateLeaveShortCommuteNormalArrivalNode      FutureStage
-            LateLeaveMedCommuteNormalArrivalNode        FutureStage
-            LateLeaveLongCommuteNormalArrivalNode       FutureStage
-            LateLeaveShortCommuteLateArrivalNode        FutureStage
-            LateLeaveMedCommuteLateArrivalNode          FutureStage
-            LateLeaveLongCommuteLateArrivalNode         FutureStage;
+            LateLeaveShortCommuteLateArrivalNode        FutureStage;
 
 set Children[RootNode] :=
             EarlyLeaveShortCommuteEarlyArrivalNode
-            EarlyLeaveMedCommuteEarlyArrivalNode
-            EarlyLeaveLongCommuteEarlyArrivalNode
             EarlyLeaveShortCommuteNormalArrivalNode
-            EarlyLeaveMedCommuteNormalArrivalNode
-            EarlyLeaveLongCommuteNormalArrivalNode
             EarlyLeaveShortCommuteLateArrivalNode
-            EarlyLeaveMedCommuteLateArrivalNode
-            EarlyLeaveLongCommuteLateArrivalNode
             NormalLeaveShortCommuteEarlyArrivalNode
-            NormalLeaveMedCommuteEarlyArrivalNode
-            NormalLeaveLongCommuteEarlyArrivalNode
             NormalLeaveShortCommuteNormalArrivalNode
-            NormalLeaveMedCommuteNormalArrivalNode
-            NormalLeaveLongCommuteNormalArrivalNode
             NormalLeaveShortCommuteLateArrivalNode
-            NormalLeaveMedCommuteLateArrivalNode
-            NormalLeaveLongCommuteLateArrivalNode
             LateLeaveShortCommuteEarlyArrivalNode
-            LateLeaveMedCommuteEarlyArrivalNode
-            LateLeaveLongCommuteEarlyArrivalNode
             LateLeaveShortCommuteNormalArrivalNode
-            LateLeaveMedCommuteNormalArrivalNode
-            LateLeaveLongCommuteNormalArrivalNode
-            LateLeaveShortCommuteLateArrivalNode
-            LateLeaveMedCommuteLateArrivalNode
-            LateLeaveLongCommuteLateArrivalNode;
+            LateLeaveShortCommuteLateArrivalNode;
 
 
 param ConditionalProbability :=  RootNode       	1.0
-            EarlyLeaveShortCommuteEarlyArrivalNode  0.04
-            EarlyLeaveMedCommuteEarlyArrivalNode    0.04
-            EarlyLeaveLongCommuteEarlyArrivalNode   0.04
-            EarlyLeaveShortCommuteNormalArrivalNode 0.04
-            EarlyLeaveMedCommuteNormalArrivalNode   0.04 
-            EarlyLeaveLongCommuteNormalArrivalNode  0.01
-            EarlyLeaveShortCommuteLateArrivalNode   0.03
-            EarlyLeaveMedCommuteLateArrivalNode     0.04
-            EarlyLeaveLongCommuteLateArrivalNode    0.04
-            NormalLeaveShortCommuteEarlyArrivalNode 0.04
-            NormalLeaveMedCommuteEarlyArrivalNode   0.04
-            NormalLeaveLongCommuteEarlyArrivalNode  0.04
-            NormalLeaveShortCommuteNormalArrivalNode 0.04
-            NormalLeaveMedCommuteNormalArrivalNode  0.04
-            NormalLeaveLongCommuteNormalArrivalNode 0.04
-            NormalLeaveShortCommuteLateArrivalNode  0.04
-            NormalLeaveMedCommuteLateArrivalNode    0.04
-            NormalLeaveLongCommuteLateArrivalNode   0.04
-            LateLeaveShortCommuteEarlyArrivalNode   0.04
-            LateLeaveMedCommuteEarlyArrivalNode     0.04
-            LateLeaveLongCommuteEarlyArrivalNode    0.04
-            LateLeaveShortCommuteNormalArrivalNode  0.04
-            LateLeaveMedCommuteNormalArrivalNode    0.04
-            LateLeaveLongCommuteNormalArrivalNode   0.04
-            LateLeaveShortCommuteLateArrivalNode    0.04
-            LateLeaveMedCommuteLateArrivalNode      0.03
-            LateLeaveLongCommuteLateArrivalNode     0.01;
+            EarlyLeaveShortCommuteEarlyArrivalNode  0.1
+            EarlyLeaveShortCommuteNormalArrivalNode 0.1
+            EarlyLeaveShortCommuteLateArrivalNode   0.1
+            NormalLeaveShortCommuteEarlyArrivalNode 0.1
+            NormalLeaveShortCommuteNormalArrivalNode 0.2
+            NormalLeaveShortCommuteLateArrivalNode  0.1
+            LateLeaveShortCommuteEarlyArrivalNode   0.1
+            LateLeaveShortCommuteNormalArrivalNode  0.1
+            LateLeaveShortCommuteLateArrivalNode    0.1;
 
 set Scenarios :=
             EarlyLeaveShortCommuteEarlyArrival
-            EarlyLeaveMedCommuteEarlyArrival
-            EarlyLeaveLongCommuteEarlyArrival
             EarlyLeaveShortCommuteNormalArrival
-            EarlyLeaveMedCommuteNormalArrival
-            EarlyLeaveLongCommuteNormalArrival
             EarlyLeaveShortCommuteLateArrival
-            EarlyLeaveMedCommuteLateArrival
-            EarlyLeaveLongCommuteLateArrival
             NormalLeaveShortCommuteEarlyArrival
-            NormalLeaveMedCommuteEarlyArrival
-            NormalLeaveLongCommuteEarlyArrival
             NormalLeaveShortCommuteNormalArrival
-            NormalLeaveMedCommuteNormalArrival
-            NormalLeaveLongCommuteNormalArrival
             NormalLeaveShortCommuteLateArrival
-            NormalLeaveMedCommuteLateArrival
-            NormalLeaveLongCommuteLateArrival
             LateLeaveShortCommuteEarlyArrival
-            LateLeaveMedCommuteEarlyArrival
-            LateLeaveLongCommuteEarlyArrival
             LateLeaveShortCommuteNormalArrival
-            LateLeaveMedCommuteNormalArrival
-            LateLeaveLongCommuteNormalArrival
-            LateLeaveShortCommuteLateArrival
-            LateLeaveMedCommuteLateArrival
-            LateLeaveLongCommuteLateArrival;
+            LateLeaveShortCommuteLateArrival;
 
 param ScenarioLeafNode := 
             EarlyLeaveShortCommuteEarlyArrival  EarlyLeaveShortCommuteEarlyArrivalNode
-            EarlyLeaveMedCommuteEarlyArrival    EarlyLeaveMedCommuteEarlyArrivalNode    
-            EarlyLeaveLongCommuteEarlyArrival   EarlyLeaveLongCommuteEarlyArrivalNode
             EarlyLeaveShortCommuteNormalArrival EarlyLeaveShortCommuteNormalArrivalNode
-            EarlyLeaveMedCommuteNormalArrival   EarlyLeaveMedCommuteNormalArrivalNode
-            EarlyLeaveLongCommuteNormalArrival  EarlyLeaveLongCommuteNormalArrivalNode
             EarlyLeaveShortCommuteLateArrival   EarlyLeaveShortCommuteLateArrivalNode
-            EarlyLeaveMedCommuteLateArrival     EarlyLeaveMedCommuteLateArrivalNode
-            EarlyLeaveLongCommuteLateArrival    EarlyLeaveLongCommuteLateArrivalNode
             NormalLeaveShortCommuteEarlyArrival NormalLeaveShortCommuteEarlyArrivalNode
-            NormalLeaveMedCommuteEarlyArrival   NormalLeaveMedCommuteEarlyArrivalNode
-            NormalLeaveLongCommuteEarlyArrival  NormalLeaveLongCommuteEarlyArrivalNode
             NormalLeaveShortCommuteNormalArrival NormalLeaveShortCommuteNormalArrivalNode
-            NormalLeaveMedCommuteNormalArrival  NormalLeaveMedCommuteNormalArrivalNode
-            NormalLeaveLongCommuteNormalArrival NormalLeaveLongCommuteNormalArrivalNode
             NormalLeaveShortCommuteLateArrival  NormalLeaveShortCommuteLateArrivalNode
-            NormalLeaveMedCommuteLateArrival    NormalLeaveMedCommuteLateArrivalNode
-            NormalLeaveLongCommuteLateArrival   NormalLeaveLongCommuteLateArrivalNode
             LateLeaveShortCommuteEarlyArrival   LateLeaveShortCommuteEarlyArrivalNode
-            LateLeaveMedCommuteEarlyArrival     LateLeaveMedCommuteEarlyArrivalNode
-            LateLeaveLongCommuteEarlyArrival    LateLeaveLongCommuteEarlyArrivalNode 
             LateLeaveShortCommuteNormalArrival  LateLeaveShortCommuteNormalArrivalNode
-            LateLeaveMedCommuteNormalArrival    LateLeaveMedCommuteNormalArrivalNode
-            LateLeaveLongCommuteNormalArrival   LateLeaveLongCommuteNormalArrivalNode
             LateLeaveShortCommuteLateArrival    LateLeaveShortCommuteLateArrivalNode
-            LateLeaveMedCommuteLateArrival      LateLeaveMedCommuteLateArrivalNode
-            LateLeaveLongCommuteLateArrival     LateLeaveLongCommuteLateArrivalNode
             ;
 
 set StageVariables[InitialStage] := P_PV_Output_ini[*]
