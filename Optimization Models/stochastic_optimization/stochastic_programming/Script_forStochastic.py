@@ -55,7 +55,7 @@ def solve_stochastic_programming(timestep,SoC_ESS,SoC_EV,Position_EV=True):
     return new_SoC_ESS,new_SoC_EV
 
 #%%
-ev_min=0.45    
+ev_min=0.50    
 
 ess0,ev0=0.40,0.30
 ess1 ,ev1 =solve_stochastic_programming(0 ,ess0 ,ev0)
@@ -65,24 +65,19 @@ ess4 ,ev4 =solve_stochastic_programming(3 ,ess3 ,ev3)
 ess5 ,ev5 =solve_stochastic_programming(4 ,ess4 ,ev4)
 ess6 ,ev6 =solve_stochastic_programming(5 ,ess5 ,ev5)
 ess7 ,ev7 =solve_stochastic_programming(6 ,ess6 ,ev6)
-ess8 ,ev8 =solve_stochastic_programming(7 ,ess7 ,ev7)
-ess9 ,ev9 =solve_stochastic_programming(8 ,ess8 ,ev8)
-ess10,ev10=solve_stochastic_programming(9 ,ess9 ,ev9)
-ess11,ev11=solve_stochastic_programming(10,ess10,ev10)
-ess12,ev12=solve_stochastic_programming(11,ess11,ev11)
-ess13,ev13=solve_stochastic_programming(12,ess12,ev12)
-ess14,ev14=solve_stochastic_programming(13,ess13,ev13)
-ess15,ev15=solve_stochastic_programming(14,ess14,ev14)
-ess16,ev16=solve_stochastic_programming(15,ess15,ev15)
-ev16=ev_min
+ess8 ,ev8 =solve_stochastic_programming(7 ,ess7 ,ev7,False)
+ess9 ,ev9 =solve_stochastic_programming(8 ,ess8 ,ev8,False)
+ess10,ev10=solve_stochastic_programming(9 ,ess9 ,ev9,False)
+ess11,ev11=solve_stochastic_programming(10,ess10,ev10,False)
+ess12,ev12=solve_stochastic_programming(11,ess11,ev11,False)
+ess13,ev13=solve_stochastic_programming(12,ess12,ev12,False)
+ess14,ev14=solve_stochastic_programming(13,ess13,ev13,False)
+ess15,ev15=solve_stochastic_programming(14,ess14,ev14,False)
+ess16,ev16=solve_stochastic_programming(15,ess15,ev15,False)
 ess17,ev17=solve_stochastic_programming(16,ess16,ev16,False)
-ev17=ev_min
 ess18,ev18=solve_stochastic_programming(17,ess17,ev17,False)
-ev18=ev_min
 ess19,ev19=solve_stochastic_programming(18,ess18,ev18,False)
-ev19=ev_min
 ess20,ev20=solve_stochastic_programming(19,ess19,ev19,False)
-ev20=ev_min
 ess21,ev21=solve_stochastic_programming(20,ess20,ev20,False)
 
 #%%
