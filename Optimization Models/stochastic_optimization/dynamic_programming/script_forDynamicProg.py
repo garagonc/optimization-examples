@@ -35,10 +35,10 @@ opt2= SolverFactory("ipopt", executable="C:/Users/guemruekcue/Anaconda3/pkgs/ipo
 opt3= SolverFactory("bonmin", executable="C:/cygwin/home/bonmin/Bonmin-1.8.6/build/bin/bonmin")
 
 ess_domain=[20,30,40,50,60,70,80,90,100]
-ev_domain=[30,40,50,60,70]
+ev_domain=[0,10,20,30,40,50,60,70]
 
 
-dynprog=StochasticDynamicProgram(scenario_24Ts,ess_domain,ev_domain,opt1,1,prob_plug,prob_end_soc)
+dynprog=StochasticDynamicProgram(scenario_24Ts,ess_domain,ev_domain,opt3,0,prob_plug,prob_end_soc)
 
 
 start_time=time.time()
@@ -47,33 +47,38 @@ end_time=time.time()
 print("Execution completed in",end_time-start_time,"seconds")
       
 # %%  
+Decision=dynprog.Decision
+Value=dynprog.Value
+
+
 P_Grid_Output  =[]
 P_PV_Output    =[]
 P_ESS_Output   =[]
 P_EV_ChargeHome=[]
+ess_SoC_record=[]
+ev_SoC_record=[]
 
 Position=dict.fromkeys(range(24),1)
 for ts in range(7,21):
     Position[ts]=0
 
-EV_expected=dict.fromkeys(range(7,21),50)
+EV_expected=40
 
 for ts in range(24):
     if ts==0:
         essSoc=40
-        ev_Soc_calc=30
-        
-    evSoc=ev_Soc_calc if Position[ts]==1 else EV_expected[ts]
-        
-    print(ts,essSoc,evSoc,Position[ts])    
+        evSoc=30
+
     results=dynprog.findoptimalValues(ts,essSoc,evSoc,Position[ts])   
     P_PV_Output.append(results[0])
     P_ESS_Output.append(results[1])
     P_Grid_Output.append(results[2])
     P_EV_ChargeHome.append(results[3])
     
-    ess_Soc=results[4]
-    ev_Soc_calc=results[4]
-    
-print(results)
-""""""
+    essSoc=min(ess_domain, key=lambda x:abs(x-results[4]))
+    evSoc=min(ev_domain, key=lambda x:abs(x-results[5])) if Position[ts]==1 else EV_expected
+
+    ess_SoC_record.append(essSoc)
+    ev_SoC_record.append(evSoc)
+
+

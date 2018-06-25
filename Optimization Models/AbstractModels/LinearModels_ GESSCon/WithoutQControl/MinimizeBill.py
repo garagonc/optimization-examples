@@ -8,7 +8,7 @@ Created on Thu Jun 21 16:03:52 2018
 from pyomo.environ import SolverFactory
 from pyomo.core import *
 
-class MinimizePowerBilll():
+class MinimizePowerBill():
     """
     Class for the abstract optimization model
     Objective: Minimization of power bill
@@ -98,7 +98,7 @@ class MinimizePowerBilll():
         def con_rule5(model,t):
             return model.Deviation[t]==sum(model.P_ESS_Output[n,t] for n in model.N)-model.ESS_Command[t]
         def con_rule6(model,t):
-            return model.absDeviation*model.absDeviation==model.Deviation[t]*model.Deviation[t]
+            return model.absDeviation[t]==abs(model.Deviation[t])
       
         model.con1=Constraint(model.T,rule=con_rule1)
         model.con2=Constraint(model.T,rule=con_rule2)
@@ -111,9 +111,7 @@ class MinimizePowerBilll():
         #######                         OBJECTIVE                           #######
         ###########################################################################
         def obj_rule(model):  
-            return sum(model.local_weight[t]*model.Price_Forecast[t]*model.P_Grid_Output[t]
-                       +model.global_weight[t]*model.absDeviation[t] 
-                       for t in model.T)
+            return sum(model.local_weight[t]*model.Price_Forecast[t]*model.P_Grid_Output[t]+model.global_weight[t]*model.absDeviation[t] for t in model.T)
         model.obj=Objective(rule=obj_rule, sense = minimize)    
         
         return model
@@ -124,6 +122,7 @@ class MinimizePowerBilll():
         Solves the optimization problem for given data_file
         """
         instance=self.abstractmodel.create_instance(data_file)
+        #instance.pprint()
         solver.solve(instance)
         
         self.P_PV=[]
@@ -140,7 +139,7 @@ class MinimizePowerBilll():
 if __name__=="__main__":
     
     #Building the optimization model
-    optimizationmodel=MinimizeGridExchange()
+    optimizationmodel=MinimizePowerBill()
     opt1=SolverFactory('glpk',executable="C:/Users/guemruekcue/Anaconda3/pkgs/glpk-4.63-vc14_0/Library/bin/glpsol")
     opt2= SolverFactory("ipopt", executable="C:/Users/guemruekcue/Anaconda3/pkgs/ipopt-3.11.1-2/Library/bin/ipopt")
     opt3= SolverFactory("bonmin", executable="C:/cygwin/home/bonmin/Bonmin-1.8.6/build/bin/bonmin")

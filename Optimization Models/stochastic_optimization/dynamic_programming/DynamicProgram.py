@@ -45,6 +45,8 @@ class StochasticDynamicProgram():
         #Real-time data
         #self.ESS_SoC_Value =scenarioParameters.ESS_SoC_Value
         
+        #Deficit SoC penalty
+        self.unitpenalty=0.5
         
         #Indices
         self.timeIndexSet =list(range(0,self.T))      #Will be represented as t
@@ -63,9 +65,14 @@ class StochasticDynamicProgram():
         for t,s1,s2,s3 in product(self.timeIndexSet ,self.stateIndexSet_ess_soc,self.stateIndexSet_ev_soc,self.stateIndexSet_ev_plug):
             self.Decision[t,s1,s2,s3]={'PV':None,'Grid':None,'ESS':None,'EV':None,'EV_FinalSoC':None,'ESS_FinalSoC':None}
         
-        #No inherent value of end state cases
         for s1,s2,s3 in product(self.stateIndexSet_ess_soc,self.stateIndexSet_ev_soc,self.stateIndexSet_ev_plug):
-            self.Value[self.T,s1,s2,s3]=0
+            
+            if s2>self.EV_Min_SoC:
+                #No inherent value of end state cases if EV_SoC>self.EV_Min_SoC
+                self.Value[self.T,s1,s2,s3]=0
+            else:
+                self.Value[self.T,s1,s2,s3]=(s2-self.EV_Min_SoC)/100*self.EV_Capacity*self.unitpenalty
+            
         
         #Narrowing down the solution space by removing the infeasible range of final states: ESS_SoC
         self.feasibleSoCRange_ess=dict.fromkeys(self.stateIndexSet_ess_soc)        
@@ -84,6 +91,8 @@ class StochasticDynamicProgram():
         """
         Solves the optimization problem for a particular initial state at the time step
         """
+        
+        
         model = ConcreteModel()
         model.states_ess_soc=Set(initialize=self.feasibleSoCRange_ess[ess_initialSoC])
         model.states_ev_soc =Set(initialize=self.stateIndexSet_ev_soc)
@@ -100,9 +109,11 @@ class StochasticDynamicProgram():
         model.P_ESS=Var(bounds=(-self.ESS_Max_Charge_Power,self.ESS_Max_Discharge_Power))
         model.P_GRID=Var(bounds=(-self.P_Grid_Max_Export_Power,10000))
         
+        model.P_EV_deficit=Var(within=NonNegativeReals)
         
-        lb=int(min(self.stateIndexSet_ev_soc)/10)
-        ub=int(max(self.stateIndexSet_ev_soc)/10)
+        
+        lb=int(min(model.states_ess_soc)/10)
+        ub=int(max(model.states_ess_soc)/10)
         model.ESS_SoC=Var(within=Integers,bounds=(lb,ub))
                    
         def demandmeeting(model):
@@ -119,9 +130,13 @@ class StochasticDynamicProgram():
         model.const_ess_soc2=Constraint(rule=delta_ess_soc)
         
         def delta_ev_soc(model):
-            return self.EV_Min_SoC<=ev_initialSoC+model.P_EV/self.EV_Capacity*100<=self.EV_Max_SoC
-        model.const_ev_soc=Constraint(rule=delta_ev_soc)        
-        
+            #return self.EV_Min_SoC<=ev_initialSoC+model.P_EV+model.P_EV_deficit/self.EV_Capacity*100<=self.EV_Max_SoC
+            return ev_initialSoC+model.P_EV/self.EV_Capacity*100<=self.EV_Max_SoC
+        model.const_ev_soc=Constraint(rule=delta_ev_soc)
+
+        def ev_energy_deficit(model):
+            return model.P_EV_deficit==self.EV_Capacity/100*(self.EV_Max_SoC-ev_initialSoC)-model.P_EV
+        model.const_ev_deficit_soc=Constraint(rule=ev_energy_deficit)
         
         prob={}
         for fin_ess_soc in self.feasibleSoCRange_ess[ess_initialSoC]:
@@ -153,16 +168,17 @@ class StochasticDynamicProgram():
                     
           
         def objrule0(model):
-            return model.P_GRID*model.P_GRID+sum(prob[s1,s2,s3]*self.Value[timestep+1,s1,s2,s3] for s1,s2,s3 in product(model.states_ess_soc,self.stateIndexSet_ev_soc,self.stateIndexSet_ev_plug))        
+            return model.P_GRID*model.P_GRID+self.unitpenalty*self.unitpenalty*model.P_EV_deficit*model.P_EV_deficit+sum(prob[s1,s2,s3]*self.Value[timestep+1,s1,s2,s3] for s1,s2,s3 in product(model.states_ess_soc,self.stateIndexSet_ev_soc,self.stateIndexSet_ev_plug))        
         def objrule1(model):
-            return model.P_PV+sum(prob[s1,s2,s3]*self.Value[timestep+1,s1,s2,s3] for s1,s2,s3 in product(model.states_ess_soc,self.stateIndexSet_ev_soc,self.stateIndexSet_ev_plug))
+            return (self.P_PV_Forecast[timestep]-model.P_PV)+self.unitpenalty*model.P_EV_deficit+sum(prob[s1,s2,s3]*self.Value[timestep+1,s1,s2,s3] for s1,s2,s3 in product(model.states_ess_soc,self.stateIndexSet_ev_soc,self.stateIndexSet_ev_plug))
              
         if self.objective==0:
             model.obj=Objective(rule=objrule0,sense=minimize)
         elif self.objective==1:
-            model.obj=Objective(rule=objrule1,sense=maximize)        
+            model.obj=Objective(rule=objrule1,sense=minimize)        
         
         result=self.solver.solve(model)
+        
         
         P_PV=model.P_PV()
         P_ESS=model.P_ESS()
@@ -173,7 +189,9 @@ class StochasticDynamicProgram():
         ev_finalsoc=int(ev_initialSoC+model.P_EV()/self.EV_Capacity*100)
         V=model.obj()
         
-        #print(P_PV,P_ESS,P_GRID,P_EV,ess_finalsoc,ev_finalsoc,V)
+        #if (timestep,ess_initialSoC,ev_initialSoC,ev_ini_plug)==(3,30,30,1):
+        #    print("Optimal decision at",timestep,ess_initialSoC,ev_initialSoC,ev_ini_plug)
+        #    print(P_PV,P_ESS,P_GRID,P_EV,model.P_EV_deficit(),ess_finalsoc,ev_finalsoc,V)
         #print(result.solver.time)
         
                    
@@ -212,5 +230,6 @@ class StochasticDynamicProgram():
         P_EV=self.Decision[t,ESS_SoC_Value,EV_SoC_Value,ifPlugged]['EV']
         ESS_SoC=self.Decision[t,ESS_SoC_Value,EV_SoC_Value,ifPlugged]['ESS_FinalSoC']
         EV_SoC=self.Decision[t,ESS_SoC_Value,EV_SoC_Value,ifPlugged]['EV_FinalSoC']
+        #print(t,ESS_SoC_Value,EV_SoC_Value,ifPlugged,P_EV)
         return P_PV,P_ESS,P_Grid,P_EV,ESS_SoC,EV_SoC
      
