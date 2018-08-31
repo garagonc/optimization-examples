@@ -1,0 +1,21 @@
+#Hourly resolution with one day horizon
+param dT := 3600;
+
+# Time invariant parameters
+param PV_Inv_Max_Power          := 10.0;
+param P_Grid_Max_Export_Power   := 10.0;
+param ESS_Min_SoC               := 0.20;
+param ESS_Max_SoC               := 0.95;
+param ESS_Capacity              := 9.6;   #kWh
+param ESS_Max_Charge_Power      := 6.4;   #kW
+param ESS_Max_Discharge_Power   := 6.4;   #kW
+#param ESS_Charging_Eff          := 0.8;
+#param ESS_Charging_Eff          := 0.9;
+param EV_Min_SoC                := 0.25;
+param EV_Max_SoC                := 1.00;
+param EV_Capacity               := 30.0 ;
+param EV_Max_Charge_Power       := 3.0;
+#param EV_Charging_Eff=Param     := 0.9;  
+
+# Supposedly deterministic future paramters
+

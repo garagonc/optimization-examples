@@ -1,0 +1,6 @@
+InitialStage, RootNode, Scenario1, InitialStageCost, None, 3.3652308134445814
+InitialStage, RootNode, Scenario2, InitialStageCost, None, 3.3652308134445814
+InitialStage, RootNode, Scenario3, InitialStageCost, None, 3.3652308134445814
+FutureStage, Node1, Scenario1, FutureStageCost, None, 34.55107129001089
+FutureStage, Node2, Scenario2, FutureStageCost, None, 22.593301888525705
+FutureStage, Node3, Scenario3, FutureStageCost, None, 15.177299280705705
