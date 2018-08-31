@@ -1,0 +1,40 @@
+set datapath=C:\Users\guemruekcue\internship\optimization-agent\components
+clear
+Set DefaultBaseFrequency=50
+
+New Circuit.Menapace_Feeder
+Edit Vsource.Source basekv=16 pu=1.00 phases=3 bus1=SourceBus MVAsc=10000 freq=50
+
+Redirect power_lines_codes.txt
+Redirect LoadShapes.txt
+Redirect PV_set.txt
+!Redirect load_models.txt
+Redirect LoadsTest.txt
+!Batchedit Load..* Daily=Shape_1
+Redirect power_lines.txt
+Redirect trafo.txt
+Redirect PV_system.txt
+Redirect Storage.txt
+!Dump Load.* debug
+plot LoadShape object=Shape_10
+!new monitor.m1 PVSystem.PV_Menapace  1 mode=1 ppolar=no
+!new monitor.m2 PVSystem.PV_Menapace  1 
+!new monitor.mvars PVSystem.PV_Menapace 1  mode=3
+!new monitor.Times  Vsource.Source 1 mode=5
+!solve mode=daily  trapezoidal=yes
+!Export pvsystem /m
+!show mon m1
+!show mon m2
+!!show mon mvars
+!Show monitor times
+!Export monitors m1
+!Plot monitor object= m1 channels=(1 )
+Set voltagebases=[16 0.4]
+calcvoltagebases
+new monitor.m1 Storage.AtPVNode 1 mode=1 ppolar=no
+new monitor.m2 PVSystem.PV_Menapace 1 mode=1 ppolar=no
+!calcv
+!solve
+!show voltages LN nodes
+!show currents 
+!show losses
