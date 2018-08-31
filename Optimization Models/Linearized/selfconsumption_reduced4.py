@@ -41,7 +41,7 @@ print("#################################################")
 print("Loading the forecasts")
 print("#################################################")
 
-file_load = open("C:/Users/guemruekcue/internship/optimization-agent/profiles/load_profile_1.txt", 'r')
+file_load = open("C:/Users/guemruekcue/internship/optimization-agent/profiles/load_profile_10.txt", 'r')
 file_PV = open("C:/Users/guemruekcue/internship/optimization-agent/profiles/PV_profile3.txt", 'r')
 linesLoad = file_load.read().splitlines()
 linesPV = file_PV.read().splitlines()
@@ -224,3 +224,51 @@ print("Degradation of life-cycle:",D_CL)
 
 #%%
 df=pd.DataFrame(data={'BusVoltage':ybus,'importP':Pimp,'importQ':Qimp,'dem':Pdem,'PVpot':PV,'PVp':ppv,'PVq':qpv})
+
+#%%
+from datetime import date, datetime, time, timedelta
+the_time =  datetime.combine(date.today(), time(0, 0))
+timestamp=[]
+
+for t in range(1440):
+    timestamp.append("{:02d}:{:02d}".format(the_time.hour,the_time.minute))
+    the_time = the_time + timedelta(minutes=1)
+"""    
+fig4=plt.subplot(2,1,1)
+fig4.set_title('Power')
+fig4.plot(timestamp, Pdem,label='Demand')
+fig4.plot(timestamp, PV,label='PV Potential')
+fig4.legend()
+fig4.set_xticks(timestamp[0:1440:180])
+fig4.set_xlabels(timestamp[0:1440:180])
+
+
+
+fig5=plt.subplot(2,1,2)
+fig5.set_title('Price')
+fig5.plot(timestamp, price,label='Price')
+fig5.legend()
+fig5.set_xticks(timestamp[0:1440:180])
+fig5.set_xlabels(timestamp[0:1440:180])
+
+plt.tight_layout()
+plt.savefig('Results')
+
+plt.show()
+"""
+import pandas
+
+    
+df_pow=pandas.DataFrame(list(zip(timestamp, PV,Pdem,price)),columns=['Time [h]','PV Potential','Demand','Price'])
+fig1, [ax1,ax2]= plt.subplots(2, 1,sharex=True)
+df_pow.plot(x='Time [h]',y='PV Potential',rot=90, ax=ax1,legend=True)
+df_pow.plot(x='Time [h]',y='Demand',rot=90, ax=ax1,legend=True,linestyle='dotted')
+df_pow.plot(x='Time [h]',y=['Price'],rot=90, ax=ax2,legend=True,color='Green')
+ax1.set_ylabel('Power [kW]')
+ax2.set_ylabel('Price [Eur/MWh]')
+
+#plt.ylabel('Power [kW]')
+
+fig1.savefig("PV.png")
+
+

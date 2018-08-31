@@ -199,3 +199,14 @@ B=-1.483
 D_CL=sum(pair[1]/(A*pow(pair[0],B)) for pair in rf)
 
 print("Degradation of life-cycle:",D_CL)
+
+#%%
+with open('linear_MinimizePBill.csv','w') as file:
+    for ts in range(1440):
+        file.write(str(model.PVmod[ts]()*PV[ts]))
+        file.write(",")
+        file.write(str(model.PBAT[ts]()))
+        file.write(",")
+        file.write(str(model.PGRID[ts]()))
+        file.write('\n')
+
